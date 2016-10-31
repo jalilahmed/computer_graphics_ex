@@ -99,7 +99,7 @@ function scanline(image, polygon) {
         // [optimization]
         // if the active edge table is empty (nEntries==0) we can step to the next edge, i.e. we can set y_scanline = myEdgeTableEntry.y_lower
         // note that the edge table is sorted by y_lower!
-
+        
 
 
 
@@ -148,7 +148,8 @@ function RenderCanvas3() {
     // get canvas handle
     var context = document.getElementById("canvas3").getContext("2d");
     var canvas = context.createImageData(200, 200);
-
+    
+    
     // clear canvas
     clearImage(canvas, new Color(255, 255, 255));
 
