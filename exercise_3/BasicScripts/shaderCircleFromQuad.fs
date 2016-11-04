@@ -15,7 +15,7 @@ void main(void)
 	// discard all elements "outside" the radius length
 	// smooth the circle edge within [r-smoothMargin, r] by computing an appropriate alpha value
 
-	 float smoothMargin = .7;
+	 float smoothMargin = .3;
 	 float r = 0.8;
 		
 	vec2 uv = gl_FragCoord.xy;
@@ -27,7 +27,7 @@ void main(void)
 	
 
 	if(a+b <= c){
-        	gl_FragColor = vec4(1.0,0,0, clamp(0.1, smoothMargin, r));
+        	gl_FragColor = vec4(1.0,0,0, clamp(0.1, r-smoothMargin, r));
 	}    	
 	else{discard;}	
 	
