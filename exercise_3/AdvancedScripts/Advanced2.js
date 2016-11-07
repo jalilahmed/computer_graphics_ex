@@ -316,6 +316,9 @@ var Advanced2 = function () {
             // TODO 3.2c):      Pass the updated variable juliaC to the
             //                  right shader program. You can find examples
             //					for uniform passing elsewhere in this file.
+            gl.useProgram(shaderProgramJulia);
+            var uniformLocationJuliaC = gl.getUniformLocation(shaderProgramJulia,"juliaC");
+            gl.uniform2f(uniformLocationJuliaC,juliaC.re,juliaC.im );
 
 
 
@@ -406,9 +409,11 @@ var Advanced2 = function () {
             // TODO 3.2b):      Pass the updated variable max_iter to the
             //                  right shader program. You can find examples
             //					for uniform passing elsewhere in this file.
-
-
-
+            gl.useProgram(shaderProgramMandelbrot);
+            var uniformLocIter = gl.getUniformLocation(shaderProgramMandelbrot,"max_iter");
+            gl.uniform1i(uniformLocIter, max_iter);
+            
+            console.log(value + "  Was in the Max_iter set area");
         }
     }
 
@@ -472,9 +477,10 @@ var Advanced2 = function () {
                 // TODO 3.2b):      Pass the updated variable center to the
                 //                  right shader program. You can find examples
                 //					for uniform passing elsewhere in this file.
-
-
-
+                gl.useProgram(shaderProgramMandelbrot);
+                var uniformCenter = gl.getUniformLocation(shaderProgramMandelbrot, "center");
+                gl.uniform2f(uniformCenter,center.re, center.im);
+                //console.log("Was trying to change center");
             }
         }
     }
@@ -495,9 +501,14 @@ var Advanced2 = function () {
         // TODO 3.2b):      Pass the updated variable zoom to the
         //                  right shader program. You can find examples
         //					for uniform passing elsewhere in this file.
-
-
-        
+        //initSceneMandelbrot();
+        // set clear color and disable depth test
+        //gl.clearColor(0.9, 0.9, 0.9, 1.0);
+        //gl.disable(gl.DEPTH_TEST);
+        gl.useProgram(shaderProgramMandelbrot);
+        var uniformZoom  = gl.getUniformLocation(shaderProgramMandelbrot,"zoom");
+        gl.uniform1i(uniformZoom, zoom);
+        //console.log("Came to zoom part");
         // do not scroll the page
         e.preventDefault();
     }

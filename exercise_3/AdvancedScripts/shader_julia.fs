@@ -60,10 +60,11 @@ vec3 hsv2rgb(vec3 hsv) {
 
 vec3 getColorForIter(float iter, int max_iter) {
 	// TODO 3.2c):      Copy your code from shader_mandelbrot.fs!
-
-
-
-	return vec3(1, 0.5, 0); // dummy return value, to be replaced
+	if (iter >= (float(max_iter) * 1.)){return vec3(0.,0.,0.);}
+	float h = iter / (1.0 * float(max_iter));
+	vec3 hsv = vec3(mod((h*360.0 + 180.0),360.0), 1.0 , 1.0);
+	vec3 color = hsv2rgb(hsv);	
+	return color;  // dummy return value, to be replaced
 }
 
 
@@ -93,10 +94,15 @@ vec2 f_c(vec2 z, vec2 c) {
 
 float countIterations(vec2 start_z, vec2 c) {
 	// TODO 3.2c):      Copy your code from shader_mandelbrot.fs!
-
-
-
-	return float(max_iter); // dummy return value, to be replaced
+	vec2 z = start_z;
+	int iter = 0;
+	for(int i = 0 ; i < 1000 ; i++){
+			if((complex_abs(z) >= 2.) || iter >= int(max_iter)){break;}
+			z = f_c(z, c);
+			iter++;
+	}
+	if (complex_abs(z)<1.0){return float(iter);}
+	return float(iter) + 1. - log(log(complex_abs(z)))/log(2.);
 }
 
 
@@ -106,8 +112,8 @@ void main(void)
 	//					to find the right gl_FragColor for each pixel. You can
 	//					use getComplexNumberFromCoords(coord) to find the 
 	//					complex number corresponding to the current pixel.
-
-
-
-	gl_FragColor = vec4(1, 1, 0, 1); // dummy return value, to be replaced
+	vec2 uv = getComplexNumberFromCoords(coord);
+	float iter = countIterations(uv, juliaC);
+	vec3 color = getColorForIter(iter,max_iter);
+	gl_FragColor = vec4(color, 1); // dummy return value, to be replaced
 }
