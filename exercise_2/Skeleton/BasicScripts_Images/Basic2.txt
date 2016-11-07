@@ -1,0 +1,8 @@
+Pro:
+-1- Very Simple.
+-2- Efficient
+
+Cons:
+-1- Requires very large stack.
+-2- Requires a seedPoint. 
+-3- Requires inside color of polygon to be same as the boundry. 
