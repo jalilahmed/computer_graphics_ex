@@ -34,7 +34,7 @@ void main(void)
 	if ((u >= 0.0) &&
 		(v >= 0.0) &&
 		(u + v < 1.)){
-	gl_FragColor = vec4(0.,0.,0.,1.0);
+	gl_FragColor = vec4(color,1.0);
 	}
 	else{discard;}
 	

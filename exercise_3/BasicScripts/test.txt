@@ -1,0 +1,39 @@
+vec2 uv = gl_FragCoord.xy;
+	
+	//-------------------Point Comparison with the Edge AB---------------------------------------
+	//--> Calculating the Normal of the Edge AB, AC, BC
+	vec2 normal_AB = vec2(-(pointB.y-pointA.y),(pointB.x-pointA.x));
+	vec2 normal_CA = vec2(-(pointA.y-pointC.y),(pointA.x-pointC.x));
+	vec2 normal_BC = vec2(-(pointC.y-pointB.y),(pointC.x-pointB.x));
+	
+	
+	vec2 pointNow_AB = vec2((uv.x - pointA.x),(uv.y - pointA.y));
+	vec2 pointNow_BC = vec2((uv.x - pointB.x),(uv.y - pointB.y));
+	vec2 pointNow_CA = vec2((uv.x - pointC.x),(uv.y - pointC.y));
+	
+	vec2 temp = min(pointNow_AB, pointNow_BC);
+	vec2 min_distance = min(temp, pointNow_CA);
+	
+	vec2 normalized_AB = normalize(normal_AB);
+	vec2 normalized_BC = normalize(normal_BC);
+	vec2 normalized_CA = normalize(normal_CA);
+	
+	float dot_AB_Point = dot(normalized_AB,min_distance);
+	float dot_CA_Point = dot(normalized_CA,min_distance);
+	float dot_BC_Point = dot(normalized_BC,min_distance); 
+	
+	//float temp = min(dot_AB_Point,dot_CA_Point);
+	//float min_distance = min(temp, dot_BC_Point);
+	
+	if ((dot(normal_AB,pointNow_AB) >= 0.) 
+		&& (dot(normal_CA,pointNow_CA) >= 0.) 
+			&& (dot(normal_BC,pointNow_BC) >= 0.))
+	{
+		if((mod(dot_AB_Point,14.) == 0.) || (mod(dot_BC_Point,14.) == 0.) || (mod(dot_CA_Point,14.) == 0.))
+		{
+			gl_FragColor = vec4(0.,0.,0.,1.);
+		} else{gl_FragColor = vec4(color, 1.);}
+	}
+	else{discard;}
+
+}

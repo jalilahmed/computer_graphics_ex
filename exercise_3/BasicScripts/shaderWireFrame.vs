@@ -17,5 +17,5 @@ void main(void)
     //////////////////////////////////////////////////////////////
     // Exercise 3.2: Barycentric Coordinates
     // assign the barycentric coordinate to the varying
-	new_color = barycenter;
+    new_color = barycenter;
 }

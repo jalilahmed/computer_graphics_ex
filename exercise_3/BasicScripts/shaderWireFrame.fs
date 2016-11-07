@@ -13,12 +13,15 @@ void main(void)
 	//////////////////////////////////////////////////////////////
 	// Exercise 3.2: Barycentric Coordinates
 	// visualize the barycentric coordinate as color
-
-	gl_FragColor = vec4(new_color, 1.0);
-
+	//gl_FragColor = vec4(new_color, 1.0);
+	
 
 	//////////////////////////////////////////////////////////////
 	// Exercise 3.2: Barycentric Coordinates
 	// discard fragments that are not considered "edges"
-
+	if (new_color.x <= epsilon || new_color.y <= epsilon || new_color.z <= epsilon){
+			gl_FragColor = vec4(new_color, 1.0);
+	}
+	else{discard;}
+	
 }

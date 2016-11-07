@@ -1,2 +1,4 @@
 Fill in your explanation here!
 -1- The minimum number of iterations possible with the slider is 5, as the number of iterations is increased, then till 203 we see some changes in the set but after that its unresponsive and no further change is visible. 
+-2- javaScript has to work pixel by pixel by WebGL uses the indices and creates fragments using them, which is much faster for rendring then javaScript. 
+-3- WebGl excutes pipelines layers of processing to create vertices and indices, and then gives texture but in javaScript all these calculations are done on CPU and only at the end the rendering is sent to the graphics hardware. 
