@@ -183,7 +183,11 @@ var Basic2 = function () {
 		//			the model matrix of the parent object (modelMatrixParent).
 		//			You can use functions mat3.create() and mat3.mul() defined
 		//			in gl-matrix.js. Replace the following dummy line.
-        var modelMatrix = modelMatrixParent;
+	var alpha = time*luminary.speed;
+	var Rot = mat3.create(Math.cos(alpha),-(Math.sin(alpha)),0.0,Math.sin(alpha),Math.cos(alpha),0.0,0.0,0.0,1.0);
+	var temp = mat3.mul(Rot, luminary.modelMatrix);
+	var modelMatrix = mat3.mul(temp,modelMatrixParent);
+
 
 
         // draw orbit
@@ -195,6 +199,7 @@ var Basic2 = function () {
 
         // TODO: 	Draw children by calling drawLuminary()
         //       	recursively for every child.
+	drawLuminary(gl,time,luminary.children[0],modelMatrixParent);
     }
 
     function drawCircle(gl, time, shaderProgram, radius, color, modelMatrix)
