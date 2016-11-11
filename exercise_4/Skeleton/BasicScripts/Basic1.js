@@ -245,8 +245,13 @@ var Basic1_4 = function () {
         // : 	Compute the affine transformation that 
 		//			transforms the triangle to the target 
 		//			triangle triangleTarget!
-	
-        return new AffineTransformation([0.6, -0.1, -0.2, 0.7], [0.2, 0.2]);
+		var t = [triangleTarget.a.x,triangleTarget.a.y];
+		var a = triangleTarget.b.x - t[0];
+		var c = triangleTarget.b.y - t[1];
+		var b = triangleTarget.c.x - t[0];
+		var d = triangleTarget.c.y - t[1];
+		
+        return new AffineTransformation([a, b,c,d], t);
 
     }
 

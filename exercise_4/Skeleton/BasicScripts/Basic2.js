@@ -183,7 +183,7 @@ var Basic2 = function () {
 		//			the model matrix of the parent object (modelMatrixParent).
 		//			You can use functions mat3.create() and mat3.mul() defined
 		//			in gl-matrix.js. Replace the following dummy line.
-	console.log(luminary);
+
 	var alpha = time*luminary.speed;
 	
 	Rot = mat3.fromValues(Math.cos(alpha),-(Math.sin(alpha)),0.0,Math.sin(alpha),Math.cos(alpha),0.0,0.0,0.0,1.0);

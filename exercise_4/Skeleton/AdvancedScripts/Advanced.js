@@ -188,23 +188,38 @@ var Advanced = function () {
         //              on the children of each luminary. Replace the following
         //              dummy line and follow the instructions in the subsequent
         //              TODOs.
-        var modelMatrix = modelMatrixParent;
+        //var modelMatrix = modelMatrixParent;
         
         // TODO: apply rotation around the axis of the luminary
-        
-
+           var ownAxis_angle = time * luminary.rotationalSpeedAroundOwnAxis;
+	   rotation_ownAxis = mat3.fromValues(Math.cos(ownAxis_angle),-(Math.sin(ownAxis_angle)),0.0,Math.sin(ownAxis_angle),Math.cos(ownAxis_angle),0.0,0.0,0.0,1.0)	
         // TODO: apply rotation around the axis of the parent
-        
-
+           var parentAxis_angle = time * luminary.rotationalSpeedAroundParentAxis;
+           rotation_parentAxis = mat3.fromValues(Math.cos(parentAxis_angle),-(Math.sin(parentAxis_angle)),0.0,Math.sin(parentAxis_angle),Math.cos(parentAxis_angle),0.0,0.0,0.0,1.0)	
         // TODO: apply transformation of the parent
-        
+       	   var rotation_combined = mat3.create();
+       	   mat3.mul(rotation_combined, rotation_ownAxis, rotation_parentAxis);
+       	   var temp = mat3.create();
+       	   mat3.mul(temp, rotation_combined, luminary.modelMatrix);
+       	   var modelMatrix = mat3.create();
+       	   mat3.mul(modelMatrix, modelMatrixParent, temp);
+
 
         drawCircle(gl, time, luminary.luminaryShaderProgram, luminary.radius, luminary.color0, luminary.color1, modelMatrix);
         
         // TODO: compute modelMatrix for children -- revert luminary rotation around own axis
-        
-
-        // TODO: draw children
+	for (var i = 0; i < luminary.children.length ; i++){   
+	   temp3 = mat3.create();
+	   mat3.invert(temp3,  rotation_parentAxis);
+	   temp2 = mat3.create();
+	   mat3.mul(temp2, rotation_combined,temp3);
+       	   temp1 = mat3.create();
+       	   mat3.mul(temp1, temp2, luminary.modelMatrix);
+       	   modelMatrix_forChildren = mat3.create();
+       	   mat3.mul(modelMatrix_forChildren, modelMatrixParent, temp1);
+        	// TODO: draw children
+           drawLuminary(gl, time, luminary.children[i], modelMatrix_forChildren);
+        }
         
     }
 
