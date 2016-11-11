@@ -14,7 +14,7 @@ var Basic2 = function () {
 
     function initSolarSystem(defaultLuminaryShaderProgram, defaultOrbitShaderProgram)
     {
-        var moon = new Luminary(0.02, 0.2, 0.0015, [0.3, 0.3, 0.3], mat3.fromValues(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.2, 0.0, 1.0), defaultLuminaryShaderProgram, defaultOrbitShaderProgram, []);
+        var moon = new Luminary(0.02, 0.2, 0.0015, [0.3, 0.3, 0.3], mat3.fromValues(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.2, 0.0, 1.0), defaultLuminaryShaderProgram, defaultOrbitShaderProgram,[]);
         var earth = new Luminary(0.1, 0.7, 0.001, [0.0, 0.0, 0.5], mat3.fromValues(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.7, 0.0, 1.0), defaultLuminaryShaderProgram, defaultOrbitShaderProgram, [moon]);
         var sun = new Luminary(0.3, 0.0, 0.0, [1.0, 1.0, 0.0], mat3.fromValues(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0), defaultLuminaryShaderProgram, defaultOrbitShaderProgram, [earth]);
         return sun;
@@ -183,12 +183,15 @@ var Basic2 = function () {
 		//			the model matrix of the parent object (modelMatrixParent).
 		//			You can use functions mat3.create() and mat3.mul() defined
 		//			in gl-matrix.js. Replace the following dummy line.
+	console.log(luminary);
 	var alpha = time*luminary.speed;
-	var Rot = mat3.create(Math.cos(alpha),-(Math.sin(alpha)),0.0,Math.sin(alpha),Math.cos(alpha),0.0,0.0,0.0,1.0);
-	var temp = mat3.mul(Rot, luminary.modelMatrix);
-	var modelMatrix = mat3.mul(temp,modelMatrixParent);
-
-
+	
+	Rot = mat3.fromValues(Math.cos(alpha),-(Math.sin(alpha)),0.0,Math.sin(alpha),Math.cos(alpha),0.0,0.0,0.0,1.0);
+	temp = mat3.create();
+	mat3.multiply(temp,Rot,luminary.modelMatrix);
+	modelMatrix = mat3.create();
+	mat3.multiply(modelMatrix,modelMatrixParent,temp);
+	
 
         // draw orbit
         drawCircle(gl, time, luminary.orbitShaderProgram, luminary.orbitRadius, luminary.color, modelMatrixParent);
@@ -199,7 +202,11 @@ var Basic2 = function () {
 
         // TODO: 	Draw children by calling drawLuminary()
         //       	recursively for every child.
-	drawLuminary(gl,time,luminary.children[0],modelMatrixParent);
+
+
+	for (var i = 0; i < luminary.children.length ; i++){	
+	drawLuminary(gl,time,luminary.children[i],modelMatrix);
+    	}
     }
 
     function drawCircle(gl, time, shaderProgram, radius, color, modelMatrix)

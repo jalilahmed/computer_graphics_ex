@@ -66,7 +66,7 @@ var Basic1_1 = function () {
 		//			performing a rotation by the angle 
 		//			alpha and replace the following line
 		//			by the appropriate code.
-		// We recieve the angle from the main function
+		// 			We recieve the angle from the main function
 		return new LinearTransformation([Math.cos(alpha), -(Math.sin(alpha)), Math.sin(alpha), Math.cos(alpha)]);
     }
 
