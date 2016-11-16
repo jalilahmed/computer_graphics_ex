@@ -1,0 +1,361 @@
+﻿
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="./resources/css/print.css">
+
+    <meta name="lecture" content="Computer Graphics">
+    <meta name="exerciseNr" content="5">
+    <meta name="exercisePrefix" content="Exercise">
+    <meta name="term" content="Winter Term 2016/17">
+    <meta name="dueDate" content="November 21, 2016, 11:59 pm">
+
+    <script type="text/javascript" async
+            src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
+    </script>
+
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+
+
+    <script type="text/javascript" src="./resources/js/sheet.js"></script>
+
+
+    <script type="text/javascript" src="./AdvancedScripts_Images/gl-Matrix.js"></script>
+    <script type="text/javascript" src="./AdvancedScripts_Images/helper.js"></script>
+
+
+
+</head>
+
+
+<body>
+    <page size="A4">
+        <content>
+            <h1>C++</h1>
+            <p>
+                "Welcome to the rest of your life"
+                is a rather pretentious introduction for the first graphics assignment featuring C++ and OpenGL, but if you stick with us, it will likely hold true.
+            </p>
+            <p>
+                If you have some experience with building C++ for Unix and Windows, you can skip this paragraph and continue with OpenGL 4.5.
+
+                The building of C++ seems rather involved if you are a beginner and used to java or, Knuth forbid, javascript.
+                Building for Unix is very simple as it involves the execution of a makefile.
+                Building for Windows is generally tantamount with building in Visual Studio.
+                The difficulty in both cases is the understanding of the tools.
+            </p>
+
+            <h2>Makefiles and Unix</h2>
+
+            <p>
+                As with everything else here, this is just a primer.
+                You should read <a href="https://www.google.de/search?q=tutorial+Makefile">tutorials</a> to learn more.
+                I our example the action is in this line:
+            </p>
+
+            <code>
+                $(TARGET): $(OBJS)
+                $(CXX) $(LFLAGS) $(LDFLAGS) $(CXXFLAGS) $(CFLAGS) $(INCLUDES) -o $(TARGET) $(OBJS) $(LIBS)
+            </code>
+
+            <p>
+                If you put in the place holders, you see that we call the g++ compiler with some options, some pointers to include dependencies, some libraries and the source code that contains our program.
+            </p>
+
+            <p>
+                <ul>
+                    <li><code>INCLUDES</code> is a sequence of directories where we store the header files of external libraries.</li>
+                    <li><code>LFLAGS</code> is a sequence of directories where we store the external libraries themselves. </li>
+                    <li>
+                        <code>LIBS</code> is a sequence of external libraries themselves.
+                        An <b>external library</b> contains existing code that you have not written but want to use.
+                        You have no knowledge of what the library contains, for that you need the header files (hopefully stored in <code>INCLUDES</code>).
+                    </li>
+                </ul>
+            </p>
+            <h2>Visual Studio and Windows</h2>
+
+            <p>
+                If you are a Windows user and working from home, you will need the <a href="https://www.visualstudio.com/post-download-vs/?sku=community&clcid=0x407&telem=ga">Community edition of Visual Studio 2015</a>.
+                If you are a Windows developer  that does not use VS, you are hardcore and do not need any help (some might argue on this, though).
+                Visual Studio organizes a project using <code>.vcxproj</code> files.
+                Those contain the same information as the makefile but rely heavily on the graphical user interface.
+                You can have a look at the properties by right click on the project in the Solution Explorer >> Properties >> C/C++.
+                If you read through the tree structure you will find
+            </p>
+            <p>
+                <ul>
+                    <li><code> C/C++ >> Additional Include Directories</code> is a sequence of directories where we store the header files of external libraries.</li>
+                    <li><code> Linker >> Additional Library Directories</code> is a sequence of directories where we store the external libraries themselves. </li>
+                    <li>
+                        <code>Linker >> Input >> Additional Dependencies </code> is a sequence of external libraries themselves.
+                        An <b>external library</b> contains existing code that you have not written but want to use.
+                        You have no knowledge of what the library contains, for that you need the header files.
+                    </li>
+                    <li><code>Debugging >> Environment</code>: Here you can edit system variables such as <code>PATH=./contrib/bin/win32;$(PATH)</code> so that your executable finds the libraries. It will only work from within VS, though.</li>
+                </ul>
+
+            </p>
+
+
+            <h2>Debugging C++</h2>
+
+            <p>
+                There are two kinds of error that you will encounter.
+                That is not true but if you have no experience with C++, it will serve.
+                One comes from mistakes in your source code and another from your project setup.
+                The first error is up to you: Search for that missing semicolon.
+                The second kind of errors stems from an incomplete project setup,
+                which means that you either forgot a path to a header or library, or forgot to add the library to your compilation command, or forgot to actually include the header in your source code.
+                A Google search will generally point you in the right direction.
+            </p>
+
+            <h1>OpenGL 4.5</h1>
+
+            <p>
+
+                Learning a graphics API is a requirement for computer graphics.
+                We use OpenGL as it is free and not bound to Windows.
+                You already know a fair share of WebGL and are familiar with the basic functionality of GPUs.
+                We will continue introducing the core concepts in our Basic Exercises.
+
+                However, our Advanced Exercises will use the latest features of the API.
+
+                We provide you a framework of working API calls.
+                You will add functionality.
+            </p>
+
+
+            <h1>Using Transformation Libraries</h1>
+
+            <p>
+                Transformations and computer graphics have now been around for quite some time and there are many existing libraries that solve the basic tasks such as multiplying and rotating matrices.
+                There is absolutely <b>no</b> need to <b>implement</b> a vector rotation by <b>yourself</b>.
+                There are many libraries available with different merits or just different names and fan bases.
+                We use the <a href="http://glm.g-truc.net/0.9.8/index.html">glm</a> as it has "gl" in its name (Really, that is the only reason. It is completely independent of the API.).
+                Depending on the version or machine or configuration of the library, the results may vary. For example, you can rotate using <b>degrees</b> (That is the convention where the full circle is $360°$.) or <b>radians</b> (A circle is $2\pi$). Make certain which notation you are using.
+
+            </p>
+
+
+                <h1>SDL2 and GLEW2</h1>
+
+				<p>
+				Our application applies the <a href="https://www.libsdl.org/download-2.0.php">SDL2</a> for its window and event management.
+				It is provided in the <b>Huber CIP</b>. If you require it elsewhere, you should know how to compile it.
+				
+				We also apply the GL extension library  <a href="http://glew.sourceforge.net/">GLEW 2.0</a>. The GLEW library provides all GL functions beyond the absolute basics.
+				The installed GLEW version is <b>too old</b>.
+				You find the correct library here:
+				<center>
+					<code>/proj/i9cg/contrib/lib</code>
+				</center>				
+				
+				</p>
+					
+            <h1>Using Quaternions</h1>
+
+            <p>
+                <b>Always normalize quaternions after modifying them.</b> A quaternion is a compact way of encoding rotations. They do <b>not</b> contain <b>angles</b> and <b>axes</b>. However, the glm provides functions that create them that way.
+            </p>
+	
+            <h1>Lambda Functions</h1>
+
+            <p>
+				You might notice that we assign a couple of braces to the animate function of each <code>SceneNode</code>.
+				These braces define a <a href="https://www.google.de/search?q=c%2B%2B+lambda+function">Lambda function</a>. A lambda function can be assigned to a  <a href="https://www.google.de/search?q=c%2B%2B+std%3A%3Afunction">std::function</a> that we can use to execute some node specific animations.
+			</p>
+
+            <h1>Controller Scheme</h1>
+            <p>
+                <ul>
+                    <li>
+                        Stop program via ESC.
+                    </li>
+                    <li>
+                        Disable mouse capture by uncommenting <code>SDL_SetRelativeMouseMode(SDL_TRUE);</code>.
+
+                    </li>
+                </ul>
+            </p>
+            <figure>
+                <center>
+
+
+
+                    <img width="550" src="resources/images/ControllerScheme.svg" alt="ControllerScheme">
+
+                    <figcaption>
+                        The controller scheme for the solar system.
+                    </figcaption>
+                </center>
+            </figure>
+
+
+        </content>
+    </page>
+
+
+
+    <page size="A4">
+        <content>
+            <exercise prefix="Advanced Exercise" title="Solar System" points="10">
+
+                <task title="Advanced Solar System" points=7>
+
+                    <p>
+                        You have some experience with transformations from our 2D solar system.
+                        This task is similar and a little more complex.
+                        Again, you are to create a sun, along with planets and moons.
+                        But instead of stacking the transformations during rendering, we put some emphasis on the <b>scene graph</b>.
+                        The scene graph is a hierarchical structure of <b>scene nodes</b>  with facilities for rendering and transformations.
+                        Each node  stores the position, the rotation and the scale of a current transformation as well as a list of children.
+                        The transformation can be stored in a $4\times4$ <b>model matrix</b>, which contains the rotation,  translation and scale, or we can store it separately.
+                        We choose to store the information using one <b>quaternion</b>, one <b>vector</b> and one <b>scalar</b>.
+                        <br>
+                        By traversing the scene graph  from the root to the leaves (or planets) we compute the matrices for every scene node.
+                        Once we have the current transformation, we hand it to the children.
+                        This has the effect that the moon will always follow the movement of the earth.
+                        The reason for that is that the revolution of the earth is contained in the lunar transformation as well via its parent-child relation.
+
+                    </p>
+
+
+
+                    <figure>
+                        <center>
+
+
+
+                            <img width="550" src="resources/images/scenegraph.svg" alt="Scenegraph">
+
+                            <figcaption>
+                                Exemplary scenegraph for a solar system transformation hierachy. <b>Not complete</b>, as it does not include the tilt of planets.
+                            </figcaption>
+                        </center>
+                    </figure>
+
+
+                    <h4>Order of Transformation</h4>
+
+                    <p>
+                        As a novice to computer graphics, you will likely have difficulties in replicating a complex combination of transformations.
+                        The task is made even more difficult by the multitude of libraries and transformation representations.
+                        It is therefore important that you are consistent. Matrices are always appended from the same side (left).
+                        In the following, A is multiplied before B:
+                        \begin{equation}
+                        \text{B} * \text{A} * v.
+                        \end{equation}
+
+                        There are reasons for doing it like that and you will acquire a feeling for the specifics eventually.
+                        Below you see two exemplary transformations that demonstrate the results of rotations followed by translations and vice versa.
+                    </p>
+
+                    <figure>
+                        <center>
+
+                            <img width="550" src="resources/images/transformation.svg" alt="Transformation">
+
+                            <figcaption>
+                                The order of transformation in the hierarchy affects the final result. If you attach a rotation prior to a translation, you can simulate a revolution.
+                                If you want to simulate a rotation but with an offset you have to translate first and then rotate.
+                            </figcaption>
+                        </center>
+                    </figure>
+
+
+
+                    <h4>The Solar System</h4>
+
+                    <p>
+                        If you compile and execute the provided skeleton you will see a yellow sphere that is supposed to be the sun.
+
+                        The <b>camera</b> is working and quite sophisticated. You can study at your convenience.
+                    </p>
+                    
+
+
+                    <figure>
+                        <center>
+
+                            <img width="550" src="resources/images/solarSystem.svg" alt="Solar System">
+
+                            <figcaption>
+                                The rough schematic of the solar system. Note that the <b>rings</b> of the jupiter are <b>tilted</b>.
+                            </figcaption>
+                        </center>
+                    </figure>
+
+
+                    <h4>The Exercise</h4>
+                    <p>
+                        Implement a solar system with the following appearance.
+                        The required information can be found on Wikipedia: <a href="https://en.wikipedia.org/wiki/Axial_tilt">tilt</a> and <a href="http://www.bobthealien.co.uk/table.htm">speed and distances</a>.
+
+                        The scale and distances are up to you.
+                        Find values for the scales and distances that make sense and be aware that there is a <b>far plane</b>.
+                    </p>
+                    <p>
+                        <ul>
+                            <li>
+                                The sun in the center with tilt and rotation.
+                            </li>
+                            <li>
+                                The earth with tilt, rotation and revolution.
+                            </li>
+                            <li>
+                                The moon with tilt, rotation and revolution.
+                            </li>
+                            <li>
+                                The saturn with tilt, rotation and revolution and rings.
+                            </li>
+                        </ul>
+                    </p>
+
+
+                </task>
+
+                <task title="Attaching the Camera to Transformation Nodes" points=3>
+                    <p>
+                        There is something called the duality of scene and camera.
+                        That means it does not matter if you move the scene away from the camera or the camera away from the scene.
+                        Likewise  does it  not matter if you rotate the world to the right (centered around the camera) or the camera to the left. You get the picture.
+
+                        The <code>SceneNode</code> class has a pointer to the camera.
+                        Once it is attached it will <b>override</b> the camera position and rotation.
+                    </p>
+
+                    <p>
+
+                        Implement the override of the camera transformation in <code>SceneNode::updateTransformation</code>.
+                        Note that if you want to invert the rotation of a quaternion, you have to disassemble and reassemble it from axis and angle.
+
+                    </p>
+
+
+                </task>
+
+				   <task title="Bonus: Implement an Animation Sequence" points=1>
+                    <p>
+					The animate function allows you to define any transformation, driven by any available information.
+					
+					You can, for example define a (global) vector of transformations, storing key frames of a path.
+					You can then attach the camera to it to make it move on its own.
+					There are additional challenges to this problem such as making the path smooth and the speed constant. 				.
+					
+                      
+                    </p>
+ 
+
+                </task>
+
+				
+            </exercise>
+        </content>
+    </page>-->
+
+</body>
