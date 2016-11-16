@@ -17,8 +17,8 @@ var Advanced = function () {
 
     function initSolarSystem(defaultLuminaryShaderProgram, shaderProgramSun) {
         var TWO_PI = 6.283185;
-        var moon = new Luminary(0.02, 12.0 * TWO_PI, 0.0 * TWO_PI, [0.2, 0.2, 0.2], [0.9, 0.9, 0.9], mat3.fromValues(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.2, 0.0, 1.0), defaultLuminaryShaderProgram, []);
-        var earth = new Luminary(0.1, TWO_PI, 365.0 * TWO_PI, [0.0, 0.0, 0.5], [0.0, 0.5, 0.0], mat3.fromValues(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.7, 0.0, 1.0), defaultLuminaryShaderProgram, [moon]);
+        var moon = new Luminary(0.02, 12*TWO_PI , 0.0 * TWO_PI, [0.2, 0.2, 0.2], [0.9, 0.9, 0.9], mat3.fromValues(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.2, 0.0, 1.0), defaultLuminaryShaderProgram, []);
+        var earth = new Luminary(0.1, TWO_PI, 365 * TWO_PI, [0.0, 0.0, 0.5], [0.0, 0.5, 0.0], mat3.fromValues(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.7, 0.0, 1.0), defaultLuminaryShaderProgram, [moon]);
         var sun = new Luminary(0.2, 0.0, 0.0, [1.0, 1.0, 0.0], [1.0, 1.0, 0.0], mat3.fromValues(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0), shaderProgramSun, [earth]);
         return sun;
     }
@@ -166,7 +166,8 @@ var Advanced = function () {
         //              You can use the function mat3.fromValues() 
         //              defined in gl-matrix.js. Replace the following 
         //              dummy line.
-        var initialTransf = mat3.create();
+        var initialTransf = mat3.fromValues(zoom,0.0,translation[0],0.0,zoom,0.0,translation[1],0.0,1.0);
+        
 
         // draw solar system
         drawLuminary(gl, time, solarSystem, initialTransf);
@@ -180,7 +181,6 @@ var Advanced = function () {
             mat3.identity(modelMatrixParent);
         }
 
-
         // TODO 4.3a): 	Setup affine transformations for the luminary movement
         //              similarly to the Basic Exercises. This time, also take
         //              into account the rotation of the luminary around its own
@@ -189,36 +189,35 @@ var Advanced = function () {
         //              dummy line and follow the instructions in the subsequent
         //              TODOs.
         //var modelMatrix = modelMatrixParent;
+        console.log(zoom,0.0,translation[0],0.0,zoom,0.0,translation[1],0.0,1.0)
         
         // TODO: apply rotation around the axis of the luminary
-           var ownAxis_angle = time * luminary.rotationalSpeedAroundOwnAxis;
-	   rotation_ownAxis = mat3.fromValues(Math.cos(ownAxis_angle),-(Math.sin(ownAxis_angle)),0.0,Math.sin(ownAxis_angle),Math.cos(ownAxis_angle),0.0,0.0,0.0,1.0)	
+           var ownAxis_angle =  timeRef * t * luminary.rotationalSpeedAroundOwnAxis;
+           console.log(ownAxis_angle);
+	   rotation_ownAxis = mat3.fromValues(Math.cos(ownAxis_angle),-(Math.sin(ownAxis_angle)),0.0,Math.sin(ownAxis_angle),Math.cos(ownAxis_angle),0.0,0.0,0.0,1.0);	
         // TODO: apply rotation around the axis of the parent
-           var parentAxis_angle = time * luminary.rotationalSpeedAroundParentAxis;
-           rotation_parentAxis = mat3.fromValues(Math.cos(parentAxis_angle),-(Math.sin(parentAxis_angle)),0.0,Math.sin(parentAxis_angle),Math.cos(parentAxis_angle),0.0,0.0,0.0,1.0)	
+           var parentAxis_angle = timeRef * t *luminary.rotationalSpeedAroundParentAxis;
+           rotation_parentAxis = mat3.fromValues(Math.cos(parentAxis_angle),-(Math.sin(parentAxis_angle)),0.0,Math.sin(parentAxis_angle),Math.cos(parentAxis_angle),0.0,0.0,0.0,1.0);	
         // TODO: apply transformation of the parent
        	   var rotation_combined = mat3.create();
-       	   mat3.mul(rotation_combined, rotation_ownAxis, rotation_parentAxis);
+       	   mat3.mul(rotation_combined, rotation_parentAxis, rotation_ownAxis);
        	   var temp = mat3.create();
-       	   mat3.mul(temp, rotation_combined, luminary.modelMatrix);
+       	   mat3.mul(temp,rotation_parentAxis, luminary.modelMatrix);
        	   var modelMatrix = mat3.create();
        	   mat3.mul(modelMatrix, modelMatrixParent, temp);
 
 
         drawCircle(gl, time, luminary.luminaryShaderProgram, luminary.radius, luminary.color0, luminary.color1, modelMatrix);
-        
+     
+     
         // TODO: compute modelMatrix for children -- revert luminary rotation around own axis
-	for (var i = 0; i < luminary.children.length ; i++){   
-	   temp3 = mat3.create();
-	   mat3.invert(temp3,  rotation_parentAxis);
-	   temp2 = mat3.create();
-	   mat3.mul(temp2, rotation_combined,temp3);
-       	   temp1 = mat3.create();
-       	   mat3.mul(temp1, temp2, luminary.modelMatrix);
+  	   var temp1 = mat3.create();
+       	   mat3.mul(temp1,rotation_parentAxis,luminary.modelMatrix);
        	   modelMatrix_forChildren = mat3.create();
-       	   mat3.mul(modelMatrix_forChildren, modelMatrixParent, temp1);
-        	// TODO: draw children
-           drawLuminary(gl, time, luminary.children[i], modelMatrix_forChildren);
+       	   mat3.mul(modelMatrix_forChildren,modelMatrixParent,temp1 );
+        // TODO: draw children
+ 	for(var i = 0 ; i < luminary.children.length; i++){
+           drawLuminary(gl, time, luminary.children[i],modelMatrix_forChildren);
         }
         
     }

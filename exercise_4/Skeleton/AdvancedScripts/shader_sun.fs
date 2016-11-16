@@ -75,24 +75,28 @@ float sunRays(vec2 vTex, float r, float r_corona, float t)
 	//			in the previous exercise sheets) use a x^6 
 	//			falloff. Replace the following dummy line.
 	float alpha_glow = 0.0;
-
+	if((r_pixel>r) && (r_pixel<r_corona)){
+	alpha_glow = pow(s,6.0);
+	}
 	///////////////////////
 	////   sun rays   /////
 	///////////////////////
-	// TODO:	Compute the direction from the center of the 
+	// TODO:		Compute the direction from the center of the 
 	//			sun to the current pixel. Replace the
 	//			following dummy line.
-	vec2 dir = vec2(1.0, 0.0);
-
+	vec2 temp = vec2((sunPosition.x - vTex.x) ,(sunPosition.y -  vTex.y));
+	float norm = sqrt(pow(temp.x,2.0) + pow(temp.y,2.0));
+	vec2  dir = vec2(temp.x/norm, temp.y/norm);
 	// For a single direction dir and a time step t we compute 
 	// a pseudo random number which is used as intensity.
-	float I_ray = noiseDir(dir, t);
+	t = time/20000000.0;
+	float I_ray = noiseDir(dir,t);
 
 	// TODO:	Compute the alpha that results from the ray.
 	//			A single ray should get weaker the more 
 	//			distant it is (use a quadratic falloff).
 	//			Replace the following dummy line.
-	float alpha_ray = 0.0;
+	float alpha_ray = (pow(s,2.0)*I_ray);
 
 	return clamp(alpha_glow + alpha_ray, 0.0, 1.0);
 }

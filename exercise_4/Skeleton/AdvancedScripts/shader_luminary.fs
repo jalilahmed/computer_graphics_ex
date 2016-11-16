@@ -65,11 +65,11 @@ void main(void)
 
 	// TODO:	Compute blending weight, using the 
 	//			noiseDir function.
-
-	// TODO:	Use the blending weight to blend 
+	float linear_weight = noiseDir(vTex, 0.0);
+	// TODO:	        Use the blending weight to blend 
 	//			between color0 and color1. Replace
 	//			the following dummy line.
-	vec3 mixedColor = color0;
+	vec3 mixedColor = color0 + linear_weight*(color1-color0);
 
 	if(pixel_r < radius)
 	{
