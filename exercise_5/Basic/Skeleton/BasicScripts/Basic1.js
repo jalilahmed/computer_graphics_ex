@@ -19,8 +19,10 @@ var Basic1_1 = function () {
         // the camera orientation is aligned with the global coordinatesystem, the view direction is the z-axis
         // note that point2D[0] is the x component and point2D[1] is the z-component
         // (hint: have a look at the bottom left of the output image, there you will see the x-z-axis)
-
-        return 0.0;
+	var projection_ortho = [1.0,0.0,0.0,0.0];
+	var projected_point = [projection_ortho[0]*point2D[0] + projection_ortho[1]*point2D[1],
+						projection_ortho[1]*point2D[0] + projection_ortho[3]*point2D[1]];
+        return projected_point[0];
     }
 
     return {
@@ -95,8 +97,10 @@ var Basic1_2 = function () {
         // note that eye, point2D, imagePlane are all in world space
         // you first have to transform everything to camera space
         // imagePlane = z value of the image plane (you also have to transform it to camera space coordinates)
-
-        return 0.0;
+	var proj_world2Camera = [1.0,0.0,-eye[0],0.0, 1.0,-eye[1]];
+	var projected_point = [proj_world2Camera[0]*point2D[0] + proj_world2Camera[1]*point2D[1] + proj_world2Camera[2]*1.0,
+					 proj_world2Camera[3]*point2D[0] + proj_world2Camera[4]*point2D[1]+ proj_world2Camera[5]*1.0,];
+        return (projected_point[0]*imagePlane)/projected_point[1];
     }
 
     return {
