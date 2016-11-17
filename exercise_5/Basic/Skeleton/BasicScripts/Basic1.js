@@ -97,10 +97,19 @@ var Basic1_2 = function () {
         // note that eye, point2D, imagePlane are all in world space
         // you first have to transform everything to camera space
         // imagePlane = z value of the image plane (you also have to transform it to camera space coordinates)
+	/*var g = vec2.fromValues(0.0,1.0);
+	var t = vec2.fromValues(1.0,0.0);
+	var norm_g = vec2.length(g);
+	var w = g.map(function(x) -x/norm_g);
+	var temp = vec2.create();
+	vec2.cross(temp,w,t);
+	var norm_temp = vec2.length(temp);
+	console.log(temp)*/
 	var proj_world2Camera = [1.0,0.0,-eye[0],0.0, 1.0,-eye[1]];
 	var projected_point = [proj_world2Camera[0]*point2D[0] + proj_world2Camera[1]*point2D[1] + proj_world2Camera[2]*1.0,
 					 proj_world2Camera[3]*point2D[0] + proj_world2Camera[4]*point2D[1]+ proj_world2Camera[5]*1.0,];
         return (projected_point[0]*imagePlane)/projected_point[1];
+    	
     }
 
     return {
@@ -175,18 +184,21 @@ mat3.perspective = function (out, fovy, near, far) {
     // TODO: setup the projection matrix, parameterized with the variables fovy, near and far
     // use the opengl style to setup the matrix (as in the lecture)
     // i.e. the camera looks into the negativ view direction
-
-    out[0] = 0;
+    
+    
+    
+    	
+    out[0] = near/far*(2.0)/-2*(near*Math.cos(fovy/2));
     out[1] = 0;
     out[2] = 0;
 
     out[3] = 0;
-    out[4] = 0;
+    out[4] = (2.0*near)/-2*(near*Math.tan(fovy/2));;
     out[5] = 0;
 
     out[6] = 0;
     out[7] = 0;
-    out[8] = 0;
+    out[8] = 1;
 
     return out;
 };
@@ -231,9 +243,12 @@ Camera.prototype.update = function () {
     // TODO: setup the camera matrix and the inverse camera matrix
     // the cameraMatrix transforms from world space to camera space
     // the cameraMatrixInverse transforms from camera space to world space
-
+	var cameraMatrix = mat3.fromValues(1.0,0.0,-this.eye[0],0.0, 1.0,-this.eye[1],0.0,0.0,1.0);
+	var cameraMatrixInverse = mat3.create();
+	mat3.invert(cameraMatrixInverse, cameraMatrix);
     // TODO: setup the projection matrix using mat3.perspective(...), which has to be implemented!
-
+	var projectionMatrix = mat3.create();
+	mat3.perspective(projectionMatrix, this.fovy, this.near, this.far);
 };
 
 Camera.prototype.projectPoint = function (point2D) {
@@ -242,8 +257,16 @@ Camera.prototype.projectPoint = function (point2D) {
     // TODO: use this.cameraMatrix to transform the point to camera space, use homogeneous coordinates!
     // then, use this.projectionMatrix to apply the projection
     // don't forget to degomogenize the projected point before returning it!
-
-    return [0.0, 0.0];
+	var point2homo = vec3.fromValues(point2D[0],point2D[1],1.0);
+	
+	var point2camera = [this.cameraMatrix[0]*point2homo[0] + this.cameraMatrix[1]*point2homo[1] + this.cameraMatrix[2]*point2homo[2],
+			  	this.cameraMatrix[3]*point2homo[0] + this.cameraMatrix[4]*point2homo[1]+ this.cameraMatrix[5]*point2homo[2],
+			  		this.cameraMatrix[6]*point2homo[0] + this.cameraMatrix[7]*point2homo[1]+ this.cameraMatrix[8]*point2homo[2]];
+	
+	var point2proj = [this.projectionMatrix[0]*point2camera[0] + this.projectionMatrix[1]*point2camera[1] + this.projectionMatrix[2]*point2camera[2],
+			  	this.projectionMatrix[3]*point2camera[0] + this.projectionMatrix[4]*point2camera[1]+ this.projectionMatrix[5]*point2camera[2],
+			  		this.projectionMatrix[6]*point2camera[0] + this.projectionMatrix[7]*point2camera[1]+ this.projectionMatrix[8]*point2camera[2]];		  		
+    return [point2proj[0]/point2proj[2], point2proj[1]/point2proj[2]];
 }
 
 Camera.prototype.render = function (context) {
