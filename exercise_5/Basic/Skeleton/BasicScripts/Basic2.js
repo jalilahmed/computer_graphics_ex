@@ -1,16 +1,42 @@
-var enableInteraction = false;
+var enableInteraction = true;
 
 mat4.perspective = function (out, fovy, near, far) {
     // TODO:    Implement the creation of the projection
     //          matrix. Orientate yourselves by the 2D case
     //          implemented in Basic1.js.
 
-    // out[0] = ?
-    // out[1] = ?
-    // ...
+    var aspect = 1;
+    var right = aspect * near * Math.tan(fovy/2.0);
+    var left = -right;
+    var bottom = near * Math.tan(fovy/2.0);
+    var top = -bottom;
 
+    var rl = 1 / (right - left),
+	tb = 1 / (top - bottom),
+	nf = 1 / (near - far);
 
+        out[0] = (near * 2) * rl;
+	out[1] = 0;
+	out[2] = 0;
+	out[3] = 0;
 
+	out[4] = 0;
+        out[5] = (near * 2) * tb;
+        out[6] = 0;
+        out[7] = 0;
+
+        out[8] = (right + left) * rl;
+        out[9] = (top + bottom) * tb;
+	out[10] = (far + near) * nf;
+        out[11] = -1;
+
+        out[12] = 0;
+        out[13] = 0;
+        out[14] = (far * near * 2) * nf;
+        out[15] = 0;
+	    
+	return out;
+    
 
 };
 
@@ -79,19 +105,46 @@ Camera3D.prototype.update = function () {
     //          vectors this.u, this.v and this.w which form
     //          the camera coordinate system. Use the  
     //          notation from the lecture.
-
-    // this.w = ?
-    // this.u = ?
-    // this.v = ? 
-
-
-
-
-    // this.cameraMatrix = ?
-
-
-
-
+    var negViewDir = vec3.create();
+    negViewDir[0] = this.lookAtPoint[0] - this.eye[0];
+    negViewDir[1] = this.lookAtPoint[1] - this.eye[1];
+    negViewDir[2] = this.lookAtPoint[2] - this.eye[2];
+    vec3.normalize(negViewDir, negViewDir);
+    var norm_g = vec3.length(negViewDir);
+    
+    this.w = negViewDir.map(function(x) -x/norm_g);
+    vec3.normalize(this.w,this.w);
+    
+    var tmp = vec3.create();
+    vec3.cross(tmp,this.upVector,this.w);
+    var norm_tmp = vec3.length(tmp);
+    this.u = tmp.map(function(x) x/norm_tmp);
+    vec3.normalize(this.u,this.u);
+    
+    this.v = vec3.create();
+    vec3.cross(this.v,this.w,this.u);
+    vec3.normalize(this.v,this.v);
+    
+    
+    
+    this.cameraMatrix = mat4.create();
+            this.cameraMatrix[0] = this.u[0];
+	    this.cameraMatrix[1] = this.v[0];
+	    this.cameraMatrix[2] = this.w[0];
+	    this.cameraMatrix[3] = 0;
+	    this.cameraMatrix[4] = this.u[1];
+	    this.cameraMatrix[5] = this.v[1];
+	    this.cameraMatrix[6] = this.w[1];
+	    this.cameraMatrix[7] = 0;
+	    this.cameraMatrix[8] = this.u[2];
+	    this.cameraMatrix[9] = this.v[2];
+	    this.cameraMatrix[10] = this.w[2];
+	    this.cameraMatrix[11] = 0;
+	    this.cameraMatrix[12] = -(this.u[0] * this.eye[0] + this.u[1] * this.eye[1] + this.u[2] * this.eye[2]);
+	    this.cameraMatrix[13] = -(this.v[0] * this.eye[0] + this.v[1] * this.eye[1] + this.v[2] * this.eye[2]);
+	    this.cameraMatrix[14] = -(this.w[0] * this.eye[0] + this.w[1] * this.eye[1] + this.w[2] * this.eye[2]);
+	    this.cameraMatrix[15] = 1;
+    
     // use mat4.perspective to set up the projection matrix
     mat4.perspective(this.projectionMatrix, this.fovy, this.near, this.far);
 };
