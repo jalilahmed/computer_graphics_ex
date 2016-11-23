@@ -110,7 +110,7 @@ class SceneNode
 
 		void updateTransformation(mat4 parentM, float deltaT)
 		{
-
+			
 			 if (animate)
 			 {
 			 	animate(deltaT, position, rotation);
@@ -119,21 +119,18 @@ class SceneNode
 			 {
 			 	//cout << "No animation Defined" << endl;
 			 }
-
-
-		 
-			 M = parentM * translate(position)  * mat4_cast(rotation);   
-			 
-
+		 	
+			M = parentM * translate(position)  * mat4_cast(rotation);   
+			
 			if (cam != 0)
 			{
 
 				//TODO: compute camera transformation 
-			 
-				//auto q ;
-				//	auto rotation   ;
-				//	auto position   ;
-
+			 	//auto q ;
+			 	rotation = inverse(rotation);
+			 	//auto position ;  
+				
+			
 				cam->setTransform(position, rotation);
 				  
 			}
@@ -427,7 +424,7 @@ int  main(int argc, char **argv)
 		flags); 
 
 	SDL_GLContext context = SDL_GL_CreateContext(SDLWindow); 
-	SDL_SetRelativeMouseMode(SDL_TRUE);
+	//SDL_SetRelativeMouseMode(SDL_TRUE);
 	
 	 //cout <<"SDL_GL_GetSwapInterval "<< SDL_GL_GetSwapInterval() << endl;
 	 //SDL_GL_SetSwapInterval(0);
@@ -498,17 +495,23 @@ int  main(int argc, char **argv)
 	GSphere* sphere = new GSphere();
 	sphere->create();
 
+	GRings* rings = new GRings();
+	rings->create();
+
 	SceneNode* root = new SceneNode();
 	Scene scene(root, cam);
 
-	SceneNode* sun = new SceneNode(sphere, vec3(0), quat(), 30);
-	sun->material = new Material(vec4(.74, .7, 0, 1));
+
+
+	quat sun_tilt = angleAxis(7.25f, vec3(0,0,1));
+	SceneNode* sun = new SceneNode(sphere, vec3(0), normalize(sun_tilt), 30);
+	sun->material = new Material(vec4(1, 0, 0, 1));
 	root->attachChild(sun);
-	sun->animate = [](float deltaT, glm::vec3& position, glm::quat& rotation)
+	sun->animate = [](float deltaT, vec3& position, quat& rotation)
 	{
 		
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		//	node animation: the sun does nothing but the earth shoud have an animation for revolution and rotation
+		//  node animation: the sun does nothing but the earth shoud have an animation for revolution and rotation
 		//
 		//  note that we call this function using references on the rotation and position of the respective scene node
 		// 
@@ -522,7 +525,94 @@ int  main(int argc, char **argv)
 	 
 	//TODO: compose Solar System
 	//check SceneNode constructor
+	float earthOwnAxis = 0.7f; 
+	float earthParentAxis =  0.318f;
+	float moonOwnAxis = 1.f;
+	float moonParentAxis = 0.1f;
+	float saturnOwnAxis = 0.1f;
+	float saturnParentAxis = 1.f;
+	
+	SceneNode* earthRevo = new SceneNode(0, vec3(0,0,70), quat() ,0);
+	root->attachChild(earthRevo);
+	earthRevo->animate =[](float earthParentAxis,  vec3& position, quat& transform_1){
+		transform_1 = angleAxis(earthParentAxis,vec3(0,1,0));
+		position = normalize(conjugate(transform_1)) * position * normalize(transform_1);
+	};
 
+	quat transform_1 = angleAxis(earthParentAxis,vec3(0,1,0));
+	SceneNode* earthRot = new SceneNode(0, vec3(0), transform_1, 0);
+	earthRevo->attachChild(earthRot);
+	earthRot->animate =[](float earthOwnAxis,  vec3& position, quat& transform_1){
+		transform_1 = transform_1 * angleAxis(earthOwnAxis,vec3(1,0,0));
+		position = normalize(conjugate(transform_1)) * position * normalize(transform_1);
+	};
+	
+	quat earth_tilt = angleAxis(23.44f, vec3(0,0,1));
+	SceneNode* earth = new SceneNode(sphere,vec3(), normalize(earth_tilt),7);
+	earth->material = new Material(vec4(0.5, .5, .5, 1));
+	earthRot->attachChild(earth);
+	earth->animate = [](float deltaT, vec3& , quat&){};
+	
+	
+	SceneNode* moonRevo = new SceneNode(0, vec3(0,0,25),quat(), 0);
+	earthRevo->attachChild(moonRevo);
+	moonRevo->animate = [](float moonParentAxis, vec3& position, quat& ){
+		quat transform_2 = angleAxis(moonParentAxis,vec3(0,1,0));
+		position = normalize(transform_2) * position * normalize(conjugate(transform_2)); 
+	};	
+	
+	quat transform_2 = angleAxis(moonParentAxis,vec3(0,1,0));
+	SceneNode* moonRot = new SceneNode(0,vec3(0),transform_2,0);
+	moonRevo->attachChild(moonRot);
+	moonRot->animate = [](float moonOwnAxis, vec3& position, quat& transform_2){
+		transform_2 = transform_2 * angleAxis(moonOwnAxis,vec3(1,0,0));
+		position = normalize(conjugate(transform_2)) * position * normalize(transform_2);
+	};
+	quat moon_tilt = angleAxis(6.68f, vec3(0,1,0));
+	SceneNode* moon = new SceneNode(sphere, vec3(0), normalize(moon_tilt),5);
+	moon->material = new Material(vec4(0, 0, 0, 1));
+	moonRot->attachChild(moon);
+	moon->animate = [](float deltaT, vec3&, quat& ){};
+	
+	
+	
+	SceneNode* saturnRevo = new SceneNode(0, vec3(0,0,150),quat(), 0);
+	root->attachChild(saturnRevo);
+	saturnRevo->animate = [](float saturnParentAxis, vec3& position, quat& ){
+		quat transform_3 = angleAxis(saturnParentAxis,vec3(0,1,0));
+		position = normalize(transform_3) * position * normalize(conjugate(transform_3)); 
+	};	
+	
+	quat transform_3 = angleAxis(saturnParentAxis,vec3(0,1,0));
+	SceneNode* saturnRot = new SceneNode(0,vec3(0),transform_2,0);
+	saturnRevo->attachChild(saturnRot);
+	saturnRot->animate = [](float saturnOwnAxis, vec3& position, quat& transform_3){
+		transform_3 = transform_3 * angleAxis(saturnOwnAxis,vec3(1,0,0));
+		position = normalize(conjugate(transform_3)) * position * normalize(transform_3);
+	};
+	
+	
+	quat saturntilt = angleAxis(26.73f, vec3(0,0,1));
+	SceneNode* saturn = new SceneNode(sphere, vec3(0), normalize(saturntilt),15);
+	saturn->material = new Material(vec4(0.5, 0.1, 0.4, 1));
+	saturnRot->attachChild(saturn);
+	saturn->animate = [](float deltaT, vec3&, quat& ){};
+	
+	
+	
+	SceneNode* saturn_rings = new SceneNode(rings, vec3(0), quat(), 22);
+	saturn_rings->material = new Material(vec4(0.5, 0.1, 0.4, 1));
+	saturn->attachChild(saturn_rings);
+	saturn_rings->animate = [](float deltaT, vec3&, quat& ){};
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// 
 	// attach Camera to certain Nodes in the scene
@@ -532,12 +622,12 @@ int  main(int argc, char **argv)
 	
 	//TODO: attach camera to scenenode
 	
-	//	 ->attachCam(cam);
+	//root->attachCam(cam);
 
 	 
 
 	auto lastTime = chrono::system_clock::now();
-
+	//cout << lastTime << endl;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// RenderLoop: runs until we intereupt it using the event handler (if we forget the handler we must kill using OS)
 	//
