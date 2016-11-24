@@ -390,14 +390,14 @@ var Basic2_3 = function () {
 			vec2.scale(point,point,1/2);
 			var normal = vec2.fromValues(-1.0,0.0);
 			var color =  new PhongLighting(context, point, normal, eye, pointLight, albedo, true);
-			console.log(color)
+
+
             // 2. use the linear gradient stroke style of the context, to linearly interpolate the vertex colors over the primitive
             //    the color triples can be scaled from [0,1] to [0,255] using the function floatToColor()
             //    the start and end points of the line segments are stored in [y,x] order, remember when using createLinearGradient()!
 			color = new floatToColor(color);
-			console.log(color);
-			var hello = context.createLinearGradient(start[1],start[0],end[1],end[0]);
-			setStrokeStyle(hello,color);
+			context.createLinearGradient(start[1],start[0],end[1],end[0]);
+			setStrokeStyle(context,color);
 
             // draw line segment
             context.beginPath();
