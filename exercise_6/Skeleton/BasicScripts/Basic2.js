@@ -93,7 +93,7 @@ function PhongLighting(context, point, normal, eye, pointLight, albedo, showVect
 
     // 3. compute the diffuse part, also use 0.5 * albedo as diffuse material property
     var L_diff = vec3.create();
-    vec3.scale(L_diff,albedo,(0.5*vec2.dot(normal,l)));
+    vec3.scale(L_diff,albedo,(0.5*vec2.dot(l,normal)));
 
 
     // 4. compute the specular part, assume an attenuated white specular material property (0.4 * [1.0, 1.0, 1.0])
@@ -101,9 +101,9 @@ function PhongLighting(context, point, normal, eye, pointLight, albedo, showVect
     var shiny = 30.0;
     var k_spec = vec3.fromValues(1.0,1.0,1.0);
     vec3.scale(k_spec,k_spec,0.4);
-	  var cosine = Math.cos(vec2.dot(v,r)/(vec2.length(r)+vec2.length(v)));
-	  var L_spec = vec3.create();
-	  vec3.scale(L_spec,k_spec,Math.pow(cosine,shiny));
+  	var cosine = Math.cos(vec2.dot(r,v)/(vec2.length(r)+vec2.length(v)));
+  	var L_spec = vec3.create();
+  	vec3.scale(L_spec,k_spec,Math.pow(cosine,shiny));
 
     // 5. add ambient, diffuse and specular color
     //    store the result in the variable color - replace the following dummy line
@@ -381,23 +381,28 @@ var Basic2_3 = function () {
         // draw surface (line segments) using flat shading
         for (var i = 0; i < nLineSegments; ++i) {
             // TODO: implement Gouraud Shading of the line segments - follow the stepwise instructions below
-            var start = lineSegments[i][0];
-            var end = lineSegments[i][1];
+         
             // 1. evaluate the color at the vertices using the PhongLighting function
             //    the normal of the vertices can be assumed to be [-1.0, 0.0] in this assignment.
-      			var point = vec2.create();
-      			vec2.add(point,start,end);
-      			vec2.scale(point,point,1/2);
-      			var normal = vec2.fromValues(-1.0,0.0);
-      			var color =  new PhongLighting(context, point, normal, eye, pointLight, albedo, true);
+		    var start = lineSegments[i][0];
+        	var end = lineSegments[i][1];
+  			var normal = vec2.fromValues(-1.0,0.0);
+  			var color_start =  new PhongLighting(context, start, normal, eye, pointLight, albedo, true);
+			var color_end =  new PhongLighting(context, end, normal, eye, pointLight, albedo, true);
 
             // 2. use the linear gradient stroke style of the context, to linearly interpolate the vertex colors over the primitive
             //    the color triples can be scaled from [0,1] to [0,255] using the function floatToColor()
             //    the start and end points of the line segments are stored in [y,x] order, remember when using createLinearGradient()!
-      			color = new floatToColor(color);
-            console.log(color);
-            context.createLinearGradient(start[1],start[0],end[1],end[0]);
-
+  			var color_start_float = new floatToColor(color_start);
+            var color_end_float = new floatToColor(color_end);
+        	
+        	
+        	var grd = context.createLinearGradient(start[1],start[0],end[1],end[0]);
+        	context.strokeStyle = grd;
+        	grd.addColorStop(0,'rgb('+ color_start_float[0] + ',' color_start_float[1] + ',' + color_start_float[2] + ')');
+        	grd.addColorStop(1,'rgb('+ color_start_end[0] + ',' color_start_end[1] + ',' + color_start_end[2] + ')');
+        	
+			
             // draw line segment
             context.beginPath();
             context.lineWidth = 8;
