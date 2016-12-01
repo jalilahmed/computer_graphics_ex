@@ -153,7 +153,6 @@ class SceneNode
 
 				auto q = quat_cast(mat3(M));
 			 
-			 
 				auto rotation = angleAxis(-angle(q), axis(q));
 				auto position = -vec3(M * vec4(vec3(0), 1.f))   ;
 
@@ -262,6 +261,7 @@ class InstancedSceneNode : public  SceneNode
 		{
 
 			glNamedBufferData(phongShaderInstancedTransformationDataBuffer, sizeof(Transform) * instanceTransformations.size(), instanceTransformations.data(), GL_STATIC_DRAW);
+			
 			 
 		}
 
@@ -538,7 +538,7 @@ int  main(int argc, char **argv)
  
 
 
-	//Merkur
+	//Merkur - Mercury
 	//~116 Tage umlaufzeit
 	//58Tage pro Rotation
 	SceneNode* merkurRev = new SceneNode(0, vec3(0, 0, 30));
@@ -847,30 +847,13 @@ int  main(int argc, char **argv)
 	neptunRot->attachChild(neptun);
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	GMesh* asteroidMesh = new GMesh();
 	asteroidMesh->create("Asteroid.obj");
 
-
- 	InstancedSceneNode* asteroidBelt = new InstancedSceneNode(asteroidMesh, vec3(0, 0, 0 ), quat(), 50);
+	
+ 	InstancedSceneNode* asteroidBelt = new InstancedSceneNode(asteroidMesh, vec3(0) , quat(), 1);
 	asteroidBelt->material = new Material(vec3(.7,0,0));
 	asteroidBelt->shader = phongShaderInstanced;
-	
 
 	asteroidBelt->animate = [](float deltaT, glm::vec3& position, glm::quat& rotation)
 	 {
@@ -887,23 +870,30 @@ int  main(int argc, char **argv)
 	// remove the scaling factor (set back to 1), we vary the scale using the Transform struct
 	// populate transformation vector like this (check class)
 	// 
-	// 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	Transform asteroid;
+	
+	
+	Transform asteroid;	
+	for(int i = 0  ; i < 8000 ; i++)
+	{
+	float y = float(rand() % (5 + 1 - 1) + 1);
+	float z = float(rand() % (450 + 1 - 350) + 350); 
+	if(length(normalize(vec3(0,y,z))) < 1.f)
+	{
+	quat uniRot = angleAxis(float((i*2*3.1415)/8000),vec3(0,1,0)); 
+	asteroid.position = rotate(uniRot,vec3(0,y,z));
+	asteroid.rotation = angleAxis(float(rand())/RAND_MAX,vec3(0,1,0));
+	asteroid.scale = float(rand() % (3 + 1 - 1) + 1) ;
 	asteroidBelt->addTransform(asteroid);
-
+	}
+	}
  	asteroidBelt->upLoadInstanceData();
   	root->attachChild(asteroidBelt);
-
-
-	 
+	
 
 	auto lastTime = chrono::system_clock::now();
-
 	while (running)
 	{
-		 
 		
 			SDL_Event e;
 			while (SDL_PollEvent(&e)) 

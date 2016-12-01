@@ -1,0 +1,2 @@
+
+If we donot normalize a vector in fragment shader and only normalize it in vertex shader then its length willl not be one and also the direction will be wrong. 

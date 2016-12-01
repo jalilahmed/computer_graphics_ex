@@ -69,24 +69,30 @@ void main() {
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// TODO:  
-	//	Instanced Positions: transform the position using all available data
+	//Instanced Positions: transform the position using all available data
 	//
-	// Lighting: transform the Vertices using the available matrices, vectors, skalars and quaternions
+	//Lighting: transform the Vertices using the available matrices, vectors, skalars and quaternions
 	//
 	// We require
 	// - Normal
 	// - View Vector
 	// - Light Vector
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	PhongShaderConstData tmp = phongShaderConstData; 
+	vec4 pos_viewSpace = tmp.V * tmp.M * vec4(vPosition,1);
+	N = transpose(inverse(mat3(tmp.V * tmp.M))) * vNormal;
+ 	N = normalize(N);
+ 	V = normalize(-pos_viewSpace.xyz);
+ 	vec4 lightSource_viewSpace = tmp.V * tmp.lightSource;
+	L = normalize(vec3(lightSource_viewSpace - pos_viewSpace));
 
 
-	vec4 p = vec4(vPosition, 1);
 
- 
-	vec4 pM =  phongShaderConstData.M * p;
-	vec4 pMV = phongShaderConstData.V * pM;
-	 
- 	 
-	gl_Position =  phongShaderConstData.P * pMV;
+	Transform asteroid = transformBuffer[gl_InstanceID];
+	vec4 p = vec4(rotate(asteroid.rotation,(vPosition + asteroid.position)), 1);
+	p[1] = p[1] * asteroid.scale;
+	vec4 pM =  phongShaderConstData.M  * p;
+	vec4 pMV = phongShaderConstData.V * pM; 
+	gl_Position =  phongShaderConstData.P *  pMV;
 
 }

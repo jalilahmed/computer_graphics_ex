@@ -1,0 +1,3 @@
+In Gouraud shading the color of each vertex is computed and then interpolated across the surface of the fragment.
+Gouraud is better then the Flat shading but we notice that at low number of line segments the color after the middle doesnt not change much and stays at a brighter shade. In phong shading the
+problem doenst because the color is obtained by interpolating the normal vectors per vertex and then computing the color for each point.

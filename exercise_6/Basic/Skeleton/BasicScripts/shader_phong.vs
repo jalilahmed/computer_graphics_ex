@@ -30,11 +30,8 @@ void main(void)
 	//				space to world space. Use the appropriate
 	//				matrix. Do not forget to normalize the normal
 	//				afterwards.
-	vec4 tmp = normalMatrix * vec4(vNormal,1);
-	for(int i = 0; i < 3 ; i++){
-		normal[i] = tmp[i]/tmp[3];
-	}
-	normal = normalize(normal);
+	vec4 tmp = normalMatrix * vec4(vNormal,0);
+	normal = normalize(tmp.xyz);
 	
 	
 	// TODO 6.3a)	Assign the position to the varying variable. 
@@ -42,11 +39,11 @@ void main(void)
 	//				space to world space. Use the appropriate
 	//				matrix. Do not forget to dehomogenize it 
 	//				afterwards.
-	tmp = normalMatrix * gl_Position;
+	tmp = modelMatrix * vec4(vVertex,1);
 	for(int i = 0; i < 3 ; i++){
 		world_position[i] = tmp[i]/tmp[3];
 	}
-	world_position = normalize(world_position);
+
 
 
 }

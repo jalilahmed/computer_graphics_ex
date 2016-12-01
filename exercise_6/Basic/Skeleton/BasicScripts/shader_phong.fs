@@ -69,10 +69,10 @@ void main(void)
 	for (int i = 0 ; i < 3 ; i++){
 		cameraPosition[i] = tmp[i]/tmp[3];
 	}
-	cameraPosition = normalize(cameraPosition);	
+	
 	vec3 v = normalize(cameraPosition - world_position);
 	vec3 r = normalize((2. * dot(l,normal) * normal) - l);
-	color_specular = k_spec * pow(dot(v,r),shiny);
+	color_specular = k_spec * pow(max(dot(v,r),0.),shiny);
 	
 	///////////////////////////////////
     ////////  resulting color  ////////

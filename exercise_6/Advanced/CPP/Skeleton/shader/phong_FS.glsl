@@ -31,9 +31,15 @@ void main()
 	// TODO:   
 	// Lighting:   compute the diffuse and spekular term
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	PhongShaderConstData tmp = phongShaderConstData; 
+	
+	vec3 color_diffuse = vec3(0);
+	color_diffuse = tmp.kd * dot(normalize(N),normalize(L));
+	
+    vec3 color_specular = vec3(0);	
+	vec3 R = normalize((2. * dot(L,N) * normalize(N)) - normalize(L));
+	color_specular = tmp.ks * pow((dot(normalize(V),R)),tmp.shininess);
 
-
-	 
-	out0 =  vec4(phongShaderConstData.kd, 1) ;
+	out0 =  vec4(color_diffuse + color_specular, 1) ;
 
 }
