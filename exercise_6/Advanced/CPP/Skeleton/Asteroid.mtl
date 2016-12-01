@@ -1,0 +1,16 @@
+# Blender MTL File: 'asteroid.blend'
+# Material Count: 1
+
+newmtl asteroid
+Ns 5.882353
+Ka 1.000000 1.000000 1.000000
+Kd 0.000000 0.219201 0.434442
+Ks 0.000000 0.171136 0.300000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd C:\Users\Christoph\AppData\media\DATA\blender\textures\normals\untitled7.png
+map_Bump C:\\Users\\Christoph\\AppData\\media\\DATA\\blender\\textures\\normals\\untitled7.png
+map_Ks C:\\Users\\Christoph\\AppData\\media\\DATA\\blender\\textures\\ice_col.png
+map_Ns C:\\Users\\Christoph\\AppData\\media\\DATA\\blender\\textures\\ice_col_d.png

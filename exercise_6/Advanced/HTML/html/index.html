@@ -1,0 +1,309 @@
+﻿
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="./resources/css/print.css">
+
+    <meta name="lecture" content="Computer Graphics">
+    <meta name="exerciseNr" content="6">
+    <meta name="exercisePrefix" content="Exercise">
+    <meta name="term" content="Winter Term 2016/17">
+    <meta name="dueDate" content="November 28, 2016, 11:59 pm">
+
+    <script type="text/javascript" async
+            src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
+    </script>
+
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+
+
+    <script type="text/javascript" src="./resources/js/sheet.js"></script>
+
+
+    <script type="text/javascript" src="./AdvancedScripts_Images/gl-Matrix.js"></script>
+    <script type="text/javascript" src="./AdvancedScripts_Images/helper.js"></script>
+
+
+
+</head>
+
+
+<body>
+
+
+
+
+    <page size="A4">
+        <content>
+            <exercise prefix="Advanced Exercise" title="Instancing, Custom Buffers and Random Numbers" points="10">
+
+                <p>
+                    In this exercise we produce geometry during rendering.
+                    You are familiar with the scene graph concept and know how we manage the geometry efficiently, which means storing it once and referencing it via pointers.
+
+                    The pointer concept is a little different for the <b>GPU memory</b>, where we access the geometry via <b>vertex array objects</b>.
+
+                    The drawing has been done sequentially by traversing the scene graph and for every renderable object we commanded the GPU to draw  its elements.
+                    Such sequential drawing requires CPU-to-GPU <b>memory transfer</b> even if we draw the same geometry over and over again as we have to update the transformations and materials.
+                    And  this memory transfer is a huge <b>bottleneck</b> for modern rendering problems that involve thousands of different rendering entities.
+                </p>
+
+                <h2>Drawing and Threads</h2>
+
+                <p>
+                    This is not an immediate problem for us, as  our examples are very small, but we should be aware of it.
+                    The <b>bottleneck problem</b> has historic origins and is a remnant of the time when rendering was conceived as a <b>single threaded</b> task.
+                    It was assumed that the rendering of geometry is slow enough, sothat there is enough time to upload the next batch of data.
+                    However, the development of rendering hardware never stopped until it reached a point where the actual rendering processors have to <b>wait</b> for new transformation data and render calls to arrive.
+                    It is save to assume that the rendering of our spheres is actually faster than the memory transfer required to "set things up".
+                </p>
+
+                <p>
+                    Of course, the development of rendering APIs has kept pace (actually, they have just caught up on February, this year, with Vulkan and DX12),
+                    and there are several ways to decrease CPU-GPU bandwidth and increase <b>GPU utilization</b> (It is very hard to fully utilize the GPU if you are efficient. Stalling the GPU is very easy, of course.).
+                    One way to improve efficiency is the usage of geometry <b>instancing</b> and instanced draw calls.
+                    The fundamental idea is the <b>decoupling</b> of <b>data transfer</b> and <b>rendering</b>.
+                </p>
+
+                <p>
+                    We know of two possible data channels from application to GPU:
+
+                    <ul>
+                        <li>
+                            vertex attributes and
+                        </li>
+                        <li>
+                            uniforms or constant buffers
+                        </li>
+                    </ul>
+                </p>
+                <p>
+                    The vertex attributes are stored somewhere on the global memory of the GPU and are read in bulk during rendering.
+                    The uniforms are <b>fed into</b> the <b>command stream</b> during rendering <b>before</b> the <b>draw command</b>, possibly causing pipeline stalls.
+                    It appears logical that we should store the transformations and materials similarly to the attribute data.
+
+                    Such a division creates additional <b>synchronization problems</b> that are absent if the data is fed into the command stream and therefore always available during rendering.
+                    Modern rendering APIs such as Vulkan and DX12 allow you to upload the data in parallel to the rendering task, but you have to manage the synchronization yourself, using semaphores, fences and barriers.
+                </p>
+
+                <h2>Instancing or Instanced Rendering</h2>
+
+                <p>
+                    The concept we have described is called instanced rendering.
+                    We render the same piece of geometry many times and each instance has its own transformation.
+                    However, we will commit only half way. We will create a <b>static array of transformations</b> with entries for different asteroids.
+                    These transformations are uploaded once during setup and remain constant for the remainder of the execution.
+                    The dynamic updates such as the revolution around the sun are the same for the entire asteroid belt.
+                </p>
+
+                <figure>
+                    <center>
+
+                        <img width="550" src="resources/images/scenegraphAsteroid.svg" alt="Scene Graph Asteroid">
+
+                        <figcaption>
+                            The scene graph applies a uniform rotation to all asteroids resulting in a revolution.
+                            Note that this is different from the schematic in the last assignment where we embedded the rotation directly in the translation of the revolution.
+                        </figcaption>
+                    </center>
+                </figure>
+
+
+                <h2>Random Numbers and Uniform Sampling</h2>
+
+
+                <p>
+                    The distribution of asteroids greatly affects the perceived realism of the solar system.
+                    We could simply arrange them on a chain or double helix or any other ordered pattern but the result would hardly appear "natural".
+                </p>
+
+                <p>
+                    Fortunately the C/C++ standard template libraries provide a <a href="http://www.cplusplus.com/reference/cstdlib/rand/">random number generator</a> which delivers quasi random numbers between $0$ and $2^{32}-1$ (depends on implementation). They can be mapped to the range of [0,1],
+                    which means that we can distribute points uniformly along any axis.
+                </p>
+
+                <p>
+                    However, computer graphics operates with more than one dimension:
+                    The sample distribution for anti-aliasing is 2D,
+                    vectors are 3D, quaternions are 4D, and when we think about the possible influences that govern a realistic light transport simulation such as light source emission profiles, material composition, atmospheric scattering and camera settings such as exposure time and aperture we have to use both hands and more to keep track.
+                </p>
+
+                <p>
+                    <b>Uniform</b> sample distribution means that the randomly generated values are scattered equally across any area or space of any desired shape.
+                    Consider the following schematics, where we want to distribute random samples on a circle.
+                    We sample many $x$ and $y$ coordinates and normalize the resulting vector
+                </p>
+
+                <figure>
+                    <center>
+
+                        <img width="250" hspace="10" src="resources/images/sampling0.svg" alt="Sampling 0">
+
+                        <img width="250" hspace="10" src="resources/images/sampling1.svg" alt="Sampling 1">
+
+                        <figcaption>
+                            The <i>left</i> image shows the selection and normalization of a sampling point within a circle. By normalizing all points within the circle, we achieve a uniform distribution of samples across the periphery.
+                            The <i>right</i> image shows the problem of this kind of sampling: if we normalize the samples outside the circle, there will be a higher point density in the directions of the 4 corners and a lower density everywhere else.
+                            We must <b>reject</b> these "outside samples".
+                        </figcaption>
+                    </center>
+                </figure>
+
+                <p>
+
+                    This kind of <a href="https://www.google.de/search?q=rejection+sampling">rejection sampling</a> can be done for any vector: Simply reject the vector if its <b>length</b> is <b>greater than 1</b>.
+
+                </p>
+
+                <p>
+                    Sampling theory is very interesting if you are motivated sufficiently (for example by computer graphics).
+                    You might take offense at the  idea of wasting time and energy by rejecting samples.
+                    Fret not, there is an alternative approach called <a href="https://www.google.de/search?q=importance+sampling">importance sampling</a> (Image search is helpful to get a general idea.)	where we can distribute samples directly according 	to a distribution function
+                    (such as a Gaussian, which distributes more samples in the middle, or a sine, which distributes samples periodically).
+                    This is a topic for a master lecture of the summer semester.
+                </p>
+
+                <p>
+                    The general idea is quite simple however and very helpful when distributing asteroids around the sun.
+                    We do not want to distribute them all in the shape of a torus.
+                    Instead, we want some of them to be farther away from or closer to the sun, so that the profile resembles a very flat ellipse.
+                    Consider a <a href="https://www.wolframalpha.com/input/?i=x%5E3+from+0+to+1">quadradic or cubic function (click here!)</a>.
+                    If you were to sample $x$ randomly, the result of the function would be random as well, but there were more samples below the .5 threshold than above.
+                    You can use this to distribute the distance of asteroids from the sun.
+                </p>
+
+
+                <h2>Asset Importer Library</h2>
+                <p>
+                    The asteroid geometry is not created during execution time!
+                    Instead we load an <a href="https://de.wikipedia.org/wiki/Wavefront_OBJ">obj file</a> that contains positions, normals and texture coordinates as well as a description of materials and textures.
+                    Such models can be <a href="http://www.blendswap.com/"> acquired from the net</a> or created via <a href="https://www.blender.org/">modelling tools</a>.
+                </p>
+
+
+
+                <h2>Shader and Material Management (Implementation Detail)</h2>
+                <p>
+                    This assignment builds on the previous with minor changes to the materials and shaders.
+                    We will continue expanding it, which means you should browse through all sources and not only the sections marked for completion.
+                </p>
+
+                <p>
+                    The most prominent difference to skeleton of last week is the addition of additional shaders.
+                    The <b>shaders define</b> the <b>pipeline</b> and consist of vertex and fragment shaders.
+                    Both are combined to the final <b>shader program</b>.
+                    Have a look at  <code>initGL</code>, where we combine the shaders, you will see that we reuse some of them.
+                    For example, the shading of planets and asteroids is the same, but they differ in the vertex setup, due to the instancing.
+                    The opposite applies for the rings of saturn, have a look if you are interested.
+                </p>
+
+                <p>
+                    These different shaders have to be integrated in the scene graph, together with the material properties for shading.
+                    Here we break the data structure for the sake of simplicity.
+                    Notice the drawing function  <code>SceneGraph::initGL</code>, where we update the uniform buffer prior to drawing.
+                    We also update the data in the render loop of the <code>main()</code> function where we update the scene specific data.
+                </p>
+
+                <p>
+                    In short, we have to attach the correct shader program to every scene node.
+                </p>
+                <task title="Asteroid Belt Distribution" points=5 submitfile="exercise6.cpp, phongInstanced_VS.glsl, phong_FS.glsl">
+
+                    <p>
+                        The first task is the distribution of asteroids  across a belt that rotates around the sun.
+                        You can start experimenting by placing the asteroids equally spaced around the sun. Then you can vary the radius and determine the placement within the belt. The figure below is just one way to solve it, there may be more elegant solutions, involving less transformations.
+                        If you have decided on the position you should find a uniform rotation for the asteroid and vary the size sensibly.
+
+                        If you want to distribute a vast number of asteroids but have only limited hardware, you can reduce the complexity of the spheres and use them instead of the mesh.
+                    </p>
+
+                    <figure>
+                        <center>
+
+                            <img width="550" src="resources/images/asteroidDistribution.svg" alt="Asteroid Distribution">
+
+                            <figcaption>
+                                The asteroids are all the same. The diversity is accomplished by randomly sampling positions, scales and rotations.
+                            </figcaption>
+                        </center>
+                    </figure>
+
+
+                    <ul>
+                        <li>
+                            Distribute the asteroids around the sun.
+                        </li>
+                        <li>
+                            Modify the asteroid vertex shader to account for the additional transformation.
+                        </li>
+                        <li>
+                            The profile of the belt should be flat with a higher asteroid density in the core of the torus.
+                        </li>
+                        <li>
+                            The rotation of asteroids should be uniformly distributed.
+                        </li>
+                        <li>
+                            The scale of the asteroids should vary around an average value.
+                        </li>
+                        <li>
+                            Implement a revolution of the entire belt around the sun.
+                        </li>
+                    </ul>
+
+                </task>
+
+
+                <task title="Asteroid Belt Lighting" points=5 submitfile="phongInstanced_VS.glsl, phong_FS.glsl, normalize.txt">
+
+                    <p>
+                        The randomized transformation of each asteroid is another <b>model matrix</b> besides the one we have used so far.
+                        Each instanced model has two model matrices that influence the position and lighting.
+                        Implement a basic phong  lighting model.
+                        The computation must be done in <b>view space</b>, that is the space where the camera is at the origin.
+                    </p>
+
+                    <ul>
+                        <li>
+                            Compute the normal matrix. There is a constructor <code>mat3(mat4)</code> that "takes" the rotational part from a mat4.
+                        </li>
+                        <li>
+                            Transform all vectors into view space. Be aware that some <b>directions</b> can be transformed directly, while others can be computed by transforming <b>positions</b> and subtracting them to compute the directions.
+                        </li>
+                        <li>
+                            Compute the diffuse term. Choose a sensible diffuse color. There is no negative light!
+                        </li>
+                        <li>
+                            Compute the specular term. Choose a sensible shininess.
+                        </li>
+                        <li>
+                            Normalize the vectors in the fragment shader. Doing so in the vertex shader is not enough. Why (answer via textfile)?
+                        </li>
+                    </ul>
+
+
+
+                </task>
+
+                <task title="Bonus: Animate the Asteroids" points=1>
+
+                    <p>
+                        You can update the rotation of the asteroids by updating the buffer.
+                        Make sure that the upload is complete before rendering.
+                        There are memory barriers for <code>Shader storage buffer</code>.
+                    </p>
+
+
+
+
+                </task>
+
+
+            </exercise>
+        </content>
+    </page>-->
+
+</body>
