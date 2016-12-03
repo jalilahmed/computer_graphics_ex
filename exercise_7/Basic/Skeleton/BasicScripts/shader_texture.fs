@@ -9,17 +9,17 @@ uniform bool cobblestone;
 
 // TODO 7.3a):	Define the checkerboard 
 //				texture as a "uniform sampler2D".
-
+uniform sampler2D textureCheckerBoard;
 // TODO 7.3b):	Define the cobblestone 
 //				texture as a "uniform sampler2D".
-
+uniform sampler2D cobblestoneTexture;
 varying vec3 normal;
 varying vec3 position;
 
 // TODO 7.3a):	Define a varying variable
 //				representing the texture
 //				coordinates.
-
+varying vec2 textureCoord;
 
 void main(void) {
 	
@@ -38,14 +38,14 @@ void main(void) {
 		//				the texture coordinates have to be
 		//				scaled accordingly. Replace the following
 		//				dummy line.
-		n = normal;
+		n = normalize(texture2D(cobblestoneTexture,textureCoord/planeSize).rgb * 2.0 - 1.0);
 	} else {
 		n = normal;
 		// TODO 7.3a):	Read the RGB value from the texture
 		//				using the function texture2D() and
 		//				the texture coordinates. Replace the
 		//				following dummy line.
-		color = vec3(0.5, 0.5, 0.5);
+		color = (texture2D(textureCheckerBoard,textureCoord)).rgb;
 	}
 	
 	vec3 k_amb = 0.1 * color;

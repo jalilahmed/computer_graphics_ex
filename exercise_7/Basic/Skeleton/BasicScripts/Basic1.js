@@ -39,21 +39,29 @@ function MipMap(texture1D, nLevelMax) {
     var texDim = texture1D.length;
     this.nLevel = Math.max(Math.min(Math.log2(texDim)+1, nLevelMax), 1);
     this.texLevels = new Array(this.nLevel);
-
     // copy first level
     this.texLevels[0] = new Array(texDim);
     for (var i = 0; i < texDim; ++i) this.texLevels[0][i] = [texture1D[i][0], texture1D[i][1], texture1D[i][2]];
-
     // TODO: compute mip map pyramid
     // use simple boxfilter to compute next mipmap level
     // assume dimension of texture to be a power of 2
+    var texDim_curr = texDim;
     for (var l = 1; l < this.nLevel; ++l) {
         // 1. compute texture dimension of that level
-        
+        	var texDim_curr = Math.round(Math.sqrt(texDim_curr));
+      
         // 2. allocate array with the right dimension
-        
+        	this.texLevels[l] = new Array(texDim_curr);
         // 3. compute the color values of the pixel using a boxfilter
-        
+        	var a = 0;
+        	var b = 1;
+        	for(var i = 0; i < texDim_curr; ++i)
+        	{
+        	this.texLevels[l][i] = vec3.create();
+        	vec3.add(this.texLevels[l][i],this.texLevels[l-1][a],this.texLevels[l-1][a + 1]);
+        	vec3.scale(this.texLevels[l][i],this.texLevels[l][i],1.0/2.0);
+    		a = a + 2;
+    		}
     }
 }
 
@@ -98,28 +106,26 @@ var Basic0 = function () {
 
         // TODO: Implement bilinear interpolation of the texture stored in the global variable "texture"
         // 1. determin the uv coordinates of the 4 surrounding pixels (use Math.floor / Math.ceil)
- 		var above = vec2.fromValues(u, Math.floor(v));
-		var below = vec2.fromValues(u,  Math.ceil(v));
-		var left  = vec2.fromValues(Math.floor(u), v);
-		var right = vec2.fromValues(Math.ceil(u) , v);
+ 		var above = vec2.fromValues(Math.ceil(u),  Math.floor(v));
+		var below = vec2.fromValues(Math.floor(u),  Math.floor(v));
+		var left  = vec2.fromValues(Math.floor(u) , Math.ceil(v));
+		var right = vec2.fromValues(Math.ceil(u) , Math.ceil(v));
 		
         // 2. compute the linear indices of the surrounding pixels (e.g. idx = texDimU * v + u;)
-		var idx_above = Math.round(texDimU * above[0] + above[1]);
-		var idx_below = Math.round(texDimU * below[0] + below[1]);
+		var idx_above = Math.round(texDimU * above[1] + above[0]);
+		var idx_below = Math.round(texDimU * below[1] + below[0]);
 		var idx_left  = Math.round(texDimU *  left[1] +  left[0]);
 		var idx_right = Math.round(texDimU * right[1] + right[0]);
 	
 		
         // 3. interpolate linearly in u (use interpolateColor())
-        color_1 = floatToColor(texture[idx_right]);
-        color_2 = floatToColor(texture[idx_left]);
-		var color_u = interpolateColor(color_1,color_2,u);
+        var alpha_u = u - Math.floor(u);
+		var color_u = interpolateColor(texture[idx_left],texture[idx_right], alpha_u);
         // 4. interpolate linearly in v (use interpolateColor())
-        color_1 = floatToColor(texture[idx_above]);
-        color_2 = floatToColor(texture[idx_below]);
-		var color_v = interpolateColor(color_1,color_2,v);
+		var color_v = interpolateColor(texture[idx_below],texture[idx_above], alpha_u);
         // replace this line
-        return (color_u + color_v);
+        var alpha_v = v - Math.floor(v)
+        return interpolateColor(color_v,color_u,alpha_v);
     }
 
     function Render() {
@@ -315,13 +321,16 @@ var Basic1 = function () {
             var pixelTop_proj = ProjectPointOntoSurfaceLine(eye, line_x, line_minZ, line_maxZ, pixelTop);
             var pixelBottom_proj = ProjectPointOntoSurfaceLine(eye, line_x, line_minZ, line_maxZ, pixelBottom);
             var pixelCenter_proj = ProjectPointOntoSurfaceLine(eye, line_x, line_minZ, line_maxZ, pixelCenter);
-
+			
             // TODO: determin level, based on the footprint of the pixel
-            // 1. use pixelBottom_proj[2] and pixelTop_proj[2] to determin the footprint of the pixel on the texture
-            
+            // 1. use pixelBottom_proj[2] and pixelTop_proj[2] to determin the footprint of the pixel on the texture	
+	      	var footprint = Math.sqrt(Math.pow(pixelTop_proj[2],2.0) + Math.pow(pixelBottom_proj[2],2.0));
             // 2. determin the mip map level where the texel size is larger than the pixel footprint
-            
-
+       		if(mipmap.nLevel > footprint)
+       		{
+       		
+       		level = Math.round(footprint);
+       		}
             // read color from the mip map pyramid
             var color = mipmap.sampleNearestNeighbor(pixelCenter_proj[2], level);
 

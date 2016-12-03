@@ -1,0 +1,374 @@
+﻿<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="./resources/css/print.css">
+
+    <meta name="lecture" content="Computer Graphics">
+    <meta name="exerciseNr" content="7">
+    <meta name="exercisePrefix" content="Exercise">
+    <meta name="term" content="Winter Term 2016/17">
+    <meta name="dueDate" content="December 5, 2016, 11:59 pm">
+
+    <script type="text/javascript" async
+        src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
+    </script>
+
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+
+
+    <script type="text/javascript" src="./resources/js/sheet.js"></script>
+
+
+    <script type="text/javascript" src="./AdvancedScripts_Images/gl-Matrix.js"></script>
+    <script type="text/javascript" src="./AdvancedScripts_Images/helper.js"></script>
+
+
+
+</head>
+
+
+<body>
+
+
+
+
+    <page size="A4">
+        <content>
+            <exercise prefix="Advanced Exercise" title="Multi Texturing, Vertex Displacement and Screen Space Derivatives" points="10">
+
+			<figure>
+			<center>
+			<img width="100" src="./resources/images/earth.jpg"></img>
+			<img width="100" src="./resources/images/earthNight.jpg"></img>
+			<img width="100" src="./resources/images/earthSpec.jpg"></img>
+			<img width="100" src="./resources/images/earthBump.jpg"></img>
+			<img width="100" src="./resources/images/earthNormal.jpg"></img>
+			
+			
+			<figcaption>
+			Textures from left to right: day color texture, night color texture, specular texture, height map & normal map.
+		</figcaption>
+			</center> 
+			</figure>
+			
+                <p>
+                    In this exercise we explore the uses of textures for lighting and vertex displacement.
+					The basic concepts and functionalities have been introduced with the Basic Exercise, at this point we want to use the API to create an interesting Planet Earth.
+					This assignment uses the newly introduced syntax of OpenGL 4.5. 
+					If your computer does not provide the libraries, you are free to rewrite the assignment using the established binding syntax.
+                </p>
+				
+               <h2>Textures </h2>
+				
+                <p>
+			    Overlaying multiple color textures and mixing between them allows for very dynamic solutions.
+				However, in the context of lighting, there are many additional applications for textures, such as:
+				</p>
+				<ul>
+				<li>				
+				color maps (or light maps that store the appearance under different illumination)
+				</li>
+				<li>
+				height maps
+				</li>
+				<li>
+				normal maps (derived from height maps via derivation)
+				</li>
+				<li>
+				specular maps
+				</li>
+				<li>
+				opacity maps
+				</li>
+
+				</ul>
+				<p>
+				and others.
+				</p>		
+
+               <h2>Non-Color Textures - Height Maps</h2>
+   
+				<p>
+				A height map is a grey-scale texture that can be used to displace vertices, as such it must be accessed in the vertex shader.
+				The common term for such an approach is  <a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter02.html">terrain rendering</a>.
+				We will apply the basic principle to extrude the earth vertices away from its center and create the characteristic mountain ridges. 
+				</p>
+				
+               <h2>Non-Color Textures - Normal Maps</h2>
+   
+				<p>
+				A normal map can be used to simulate surface detail using shading only.
+				The normal map allows the distortion of the surface normal, resulting in "bumps" on a planar surface.				
+				</p>
+				
+               <h2>Non-Color Textures - Specular Maps</h2>
+   
+				<p>
+				A specular map allows the simulation of complex material compositions, for example partially rusted material. The surface shines only where the specular map allows, allowing for a very fine detail.				
+				</p>
+				
+               <h2>Non-Color Textures - Opacity Maps</h2>
+   
+				<p>
+				An opacity map allows the simulation of very fine geometric detail using simple planes.
+				An opacity map is a grey scale texture that is painted on a coarse mesh.
+				During shading we <b>discard</b> all fragments that are not white (or below a threshold) resulting in very fine geometry that would have been impossibly expensive using vertices alone.
+				</p>
+				
+				
+				
+				<h2>Screen Space Derivatives - How MIP Mapping Works</h2>
+
+				
+				<p>
+				MIP mapping is a texturing technique that filters textures to reduce <b>Minification Aliasing</b> by accessing under-sampled and averaged copies of an image depending on the viewing distance or rather the <b>projected texel footprint</b>.
+				But how does the MIP level selection work?
+				The answer is: "screen space derivatives". 
+				Well, how do those work?
+				It is a technique to compute any difference between values of adjacent fragments using <a href="https://en.wikipedia.org/wiki/Finite_difference#Forward.2C_backward.2C_and_central_differences">forward or backward differences</a>.	
+				</p>
+				
+				<p>
+				The basic idea of MIP mapping states that the texel footprint must be equal to the pixel footprint. 
+				Obviously, if the texture is too far away, it gets smaller and more than one texel fit into one pixel.
+				That means we must increase the texel size by accessing higher MIP levels.
+				</p>
+				
+				<figure>
+				<center>
+				<img width="550" src="./resources/images/lambdaSelect.svg"></img> 
+				
+				<figcaption>
+				Left: Image plane & ray through pixels. Middle: textured surface. Right: MIP pyramid
+			</figcaption>
+				</center> 
+				</figure>
+					
+				<p>
+				The GPU executes the fragment shader in pairs of four,	
+				which means that there is always an immediate right-left and top-bottom neighborhood.
+				If we evaluate a texture using the <code>texture(tex, uv)</code> function, we also provide a texture coordinate for look-up.
+				The GPU computes the differences between the adjacent uv coordinates in the <b>integer domain</b> (not [0,1] but [0, texture size]) using the functions <a href="https://www.opengl.org/sdk/docs/man/html/dFdx.xhtml">dFdx & dFdy</a>.
+				If the difference of either is greater than 1, we have to select a MIP level higher than 0.
+				The MIP level is indicated via the greek letter $\lambda$.
+				The texel size (relative to the original texture) of each level is computed as follows:
+				\begin{equation}
+					\Delta uv_\lambda = 2^\lambda
+				\end{equation}
+				That means that the original texel size on layer 0 is 1, followed by 2, 4, 8, 16, ... and so on for the higher levels. 
+				The specifics can be found in the <a href="https://www.opengl.org/registry/doc/glspec44.core.pdf">OpenGL Spec, section 8.14.3</a>.
+				</p>
+				
+				
+					
+				<h2>Screen Space Derivatives - Normal Computation</h2>
+
+				<p>
+					The asteroids in this assignment are shaded using Phong lighting.
+					The required normals have been computed by the mesh loader using the mesh.
+					Vertex normals are computed by averaging the surrounding face normals.
+					A face or triangle normal is derived by computing the perpendicular vector of two triangle edges via <b>cross product</b>.	
+					The same principle can be applied in the shader during rendering.
+If we interpolate the positions using <b>shader varyings</b>, we can evaluate their differences in the fragment shader and compute a normal in screen space.					
+				</p>
+				
+				
+				<figure>
+				<center>
+				<img width="250" src="./resources/images/normals.svg"></img> 				
+				<img width="250" src="./resources/images/ssNormals.svg"></img> 
+				
+				<figcaption>
+				Left: Normal computation on a triangle using the edges. Right: Normal computation in the shader using positions and screen space derivation.
+				</figcaption>
+				</center> 
+				</figure>
+				
+                <task title="Vertex Displacement and Normal Computation" points=4 submitfile="earthTextured_VS.glsl, earthTextured_FS.glsl">
+				<p>
+				The earth is currently a smooth ball.
+				We want to use the height map to extrude and displace vertices outwards.
+				The scaling of positions happens in the vertex shader in <b>object or model space</b>.
+				</p>	
+                 
+				<p>
+				The provided height map has a resolution of 8198$\times$4096.
+				The sphere resolution is much lower: 2048$\times$1024.
+				The sampling of the height map happens per vertex, which means that we only evaluate every fourth texel. 
+				This causes <b>aliasing</b>.
+				However, we can use OpenGL to create a MIP map of the bump map (during texture creation) and access the correct MIP level using <a href="https://www.opengl.org/sdk/docs/man4/html/textureLod.xhtml">textureLod</a>.
+				</p>	
+                  
+				<figure>
+				<center>
+				<img width="250" src="./resources/images/vertexDisplacement.svg"></img> 			
+				
+				<figcaption>
+				Offset the vertex position via scaling. Apply <b>transformations M and V after</b> scaling.
+				</figcaption>
+				</center> 
+				</figure>
+				
+				<p>
+				Once the vertices are displaced, the original surface normals are wrong as they should be perpendicular to the positions,
+				which means that we have to compute the surface normal using the displaced and interpolated vertex positions and screen space derivation.
+                </p>	
+                    
+					
+				<p>
+				The normals derived from the vertex positions are not smooth, as we have reduced the bump map resolution. 
+				For the shading to be smooth, we have to compute the normals from positions with higher precision.
+				That means we have to extrude the positions in the fragment shader as well.
+				</p>	
+                    
+				<ul>
+				<li>
+				Begin by sampling the height map in the vertex shader and by scaling the vertices: <code>p * (1 + scale * height)</code>.
+				After displacement, apply transformations M and V and P.
+				</li>
+				<li>
+				The illumination is supposed to be done in view space.
+				Interpolate the <b>view space positions</b> using varyings (in/out and without normalization) and compute a normal from them, using screen space derivation.
+				Use the normal for lighting by setting the fragment color to the scalar product <code>dot(N,L)</code>.
+				You should see shaded mountain sides.
+				</li>
+				<li>
+				The derived normal is not smooth.
+				That means we have to sample the positions again in the fragment shader.
+				Begin by interpolating the original vertex position (without any transformation).
+				Displace and transform the positions  as you did in the vertex shader (<code>texture(tex,uv)</code> samples the proper MIP layer automatically).
+				Compute the smoother normal and visualize the shading.
+				
+				</li>
+				</ul>
+				
+					
+                </task>
+				 
+                <task title="Texturing Earth" points=2 submitfile="earthTextured_FS.glsl">
+				<p>
+                    We provide two color textures for the earth, one for day, one for night.
+					Display either color depending on the scalar product <code>dot(N,L)</code>.
+					The transition should be smooth, and for $-.2 < \text{dot}(N,L) < .2$ both should be mixed. 
+					
+					The glsl <a href="https://www.opengl.org/sdk/docs/man/html/mix.xhtml">mix</a> function interpolates smoothly between two values. 
+					If the mixing variable <code>a</code> is either 0 or 1 it uses that color fully.
+					Another glsl function, <a href="https://www.opengl.org/sdk/docs/man/html/clamp.xhtml">clamp</a>, limits a variable <code>x</code> between two extremes.
+					By using them meaningfully, you implement the functionality without <code>if</code>
+and <code>else</code>.
+</p>
+
+					<br>
+				<ul>
+				<li>
+				Display the day texture at day and the night texture at night.
+				Use the original mesh normal for the interpolation. 
+				We do not apply additional shading.
+				</li>	
+				<li>
+				All fragments with a $-.2 < \text{dot}(N,L) < .2$ must interpolate between both textures,
+				which means you have to  map the range [-.2,2] to [0,1] and use the value for mixing.
+				</li>	
+				<li>
+				Be aware that $\text{dot}(N,L)$ is negative on the night side.
+				</li>				
+				</ul>
+				
+                </task>
+				
+                <task title="Specular Reflections" points=1 submitfile="earthTextured_VS.glsl, earthTextured_FS.glsl">
+				<p>
+				The ocean reflects the light specularly.
+				We provide a specular map that provides the factor for the specular term.
+				You can use Phong or Blinn-Phong lighting.
+If you choose the first, be aware that there is a 	<a href="https://www.opengl.org/sdk/docs/man/html/reflect.xhtml">reflect</a> function.			
+                </p> 
+					<br>
+				<ul>
+				<li>
+				Add specular lighting to the surface of the earth. Choose a pleasing shininess exponent.
+				</li>				
+				<li>
+				Take care that the specular color is not negative.
+				</li>				
+				</ul>
+								
+                </task>
+				
+                <task title="Cloud Layer and Cloud Shadows" points=3 submitfile="earthTextured_FS.glsl, clouds_FS.glsl">
+				<p>
+				The fragment shader <code>clouds_FS.glsl</code>  currently discards all fragments.
+				Begin by removing the line and display the cloud texture instead.
+				You will see a  black and white patterned sphere engulfing the earth. 
+				If we remove all fragments with a cloud value <b>below .4</b>, we see something resembling clouds.
+				Clouds have a diffuse light falloff.
+				Clouds are visible at night and not black, they should have a brightness of .15.
+				Clouds can be illuminated if the underlying surface is dark.
+				The visible area should be limited by $\text{dot}(N,L) + .3$.				
+				</p>
+				
+				<p>
+				Clouds cast shadows on the earth.
+				To approximate the effect we must edit <code>earthTextured_FS.glsl</code>.
+				The clouds sphere and the earth share the same texture coordinates.
+				If we have decided that a texel is a cloud, the same texel must cast a shadow on the earth.
+				That means if a cloud value is <b>above .4</b>, we should reduce the light of the fragments in shadow.
+				Note that clouds cast shadows if they have values above .4, that means when you have to subtract .4 from the shadow value (color - (shadow - .4)).
+				
+				The color should never be lower that $.1$.			
+				</p>
+				
+
+				<p>
+					Clouds are sometimes red in the mornings and the evenings ($.3 > \text{dot}(N,L) > -.3$). 
+					The red tint can be controlled by the falloff of $\text{dot}(N,L)$.
+					If red has a slower falloff than the other channels it remains brighter.
+					Consider these <a href="https://www.google.de/search?q=sqrt(cos(x))&ie=utf-8&oe=utf-8&client=firefox-b-ab&gfe_rd=cr&ei=mVU1WMe4NO2v8wfmiougCQ#q=sqrt(cos(x))%2C+cos+x">plots</a>.
+				</p>
+					<br>
+				<ul>
+				<li>
+				Discard non-cloud fragments. 
+				Apply the diffuse lighting falloff.
+				</li>				
+				<li> 
+				Create cloud shadows by sampling the cloud texture in the earth shader and reducing the light by the cloud value.
+				</li>
+				<li>	
+				Create a red tint in the clouds by decreasing the falloff of red via <code>sqrt</code>.				
+				</li>				
+				</ul>
+				
+				
+                    
+                </task>
+				
+				 
+
+                <task title="Bonus: Aurora Borealis" points=1 submitfile="Bonus.zip">
+
+                    <p>
+                        You have all the tools you need to implement an aurora borealis.
+						You only have to add another layer similar to the cloud layer.
+						You can search the internet for a suitable texture or you use the Perlin noise of the sun shader. 
+						You will have to modify it though to produce the typical streaks.
+						Or you search for shaders that implement an aurora effect as seen from space.
+                    </p>
+
+
+
+
+                </task>
+
+
+            </exercise>
+        </content>
+    </page>
+
+    -->
+
+</body>

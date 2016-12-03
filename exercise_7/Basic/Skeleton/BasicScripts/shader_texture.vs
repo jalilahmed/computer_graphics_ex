@@ -16,7 +16,7 @@ varying vec3 position;
 // TODO 7.3a):	Define a varying variable
 //				representing the texture
 //				coordinates.
-
+varying vec2 textureCoord;
 
 void main(void)
 {
@@ -31,5 +31,6 @@ void main(void)
 	//				attribute to the corresponding 
 	//				varying variable.
 	
+	textureCoord = vTexCoord;
 	
 }
