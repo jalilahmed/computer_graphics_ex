@@ -46,26 +46,25 @@ void main() {
 	 //			-compute vectors for lighting (for initial testing)
 	 //
 	 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	  
-	 
-	 
+	 	 
 	 N =  normalize(mat3(transpose(inverse(phongShaderConstData.V*phongShaderConstData.M)))* vNormal); 
 	 uv=vTexCoord;
 	 vec4 lpV = phongShaderConstData.V * vec4(phongShaderConstData.lightSource.xyz,1);
-	 
-	 vec3 tmp = vec3(textureLod(textures[4],vTexCoord,0.f));
-	 	 
+		
+	 //vec2 dx = dFdx(-vTexCoord);
+     //vec2  dy_vtc        = dFdy(TexCoord);
+     //float delta_max_sqr = max(dot(dx_vtc, dx_vtc), dot(dy_vtc, dy_vtc));
+     //float mml = log2(delta_max_sqr);
+     //float mipmapLevel = max( 0, mml );
+
+	 float height = texture(textures[4],-vTexCoord).x; 	 
 	 p = vPosition.xyz;
 	 float scale = .18f ;
-	 p = p *  (1.f + scale * tmp);
-	 
-	 
-	
-	
-	 pM = vec3(phongShaderConstData.M * vec4(p, 1));
+	 vec3 pos = p *  (1.f + scale * height);
+	 pM = vec3(phongShaderConstData.M * vec4(pos,1));
 	 pV = vec3(phongShaderConstData.V * vec4(pM,1));
 	
+	 
 	 L = normalize(lpV.xyz  - pV ); 
 		 
 	 gl_Position =   phongShaderConstData.P *  vec4(pV,1);

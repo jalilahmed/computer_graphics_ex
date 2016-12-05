@@ -32,8 +32,8 @@ uniform sampler2D[] textures;
 
 void main() 
 { 
-	discard;
-	return;
+	//discard;
+	//return;
 
 	 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	 //
@@ -45,16 +45,18 @@ void main()
 	 //			-Create red tint by slower fallof of dotNL using sqrt
 	 //
 	 ////////////////////////////////////////////////////////////////////////////////////////////////////
+	 vec4 cloud;
+	 cloud = texture(textures[2],-uv);
+	 if (cloud.x < .4f)
+	 {
+	 discard;
+	 }
 	 
-	  
-
- 
-	float dotNL;
-	 
-	vec4 cloudTex;	 
-
-	vec4 cloud;
- 
-	//out0 = cloud;
+	 float dotNL = dot(N,L); 
+	 if(dotNL < .3f && dotNL > -.3f)
+	 {
+	 cloud.x = sqrt(cloud.x);
+	 }
+	 out0 = cloud + dotNL + .3;
 
 }

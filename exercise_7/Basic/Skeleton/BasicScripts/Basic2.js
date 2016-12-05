@@ -102,10 +102,24 @@ var Basic2_1 = function () {
             // TODO
             // 1. project triangle (use the helper functions matrixVectorProduct and dehomogenize defined above)
             //    replace this dummy line
-            
-
+	    
+			vertex1 = [triangle[0][0],triangle[0][1],triangle[0][2],1];
+			vertex2 = [triangle[1][0],triangle[1][1],triangle[1][2],1];
+			vertex3 = [triangle[2][0],triangle[2][1],triangle[2][2],1];
+			
+		    var prod1 = matrixVectorProduct(M,vertex1);
+			var prod2 = matrixVectorProduct(M,vertex2);
+			var prod3 = matrixVectorProduct(M,vertex3);
+			
+			d_prod1= dehomogenize(prod1);
+			d_prod2= dehomogenize(prod2);
+			d_prod3= dehomogenize(prod3);
+			
+	 
             // 2. draw triangle (use drawTriangle())
-            
+            trianglePoints = [d_prod1,d_prod2,d_prod3];
+	    	drawTriangle(context, canvasWidth, canvasHeight, trianglePoints,"A,B,C");
+	    
 
             // draw axis
             arrow(context, 15, 285, 15, 255);
@@ -137,12 +151,32 @@ var Basic2_2 = function () {
 
             // TODO
             // 1. project triangle
-
+			vertex1 = [triangle[0][0],triangle[0][1],triangle[0][2],1];
+			vertex2 = [triangle[1][0],triangle[1][1],triangle[1][2],1];
+			vertex3 = [triangle[2][0],triangle[2][1],triangle[2][2],1];
+			    
+	        var prod1 = matrixVectorProduct(M,vertex1);	    
+			var prod2 = matrixVectorProduct(M,vertex2);
+			var prod3 = matrixVectorProduct(M,vertex3);
+	
+			d_prod1= dehomogenize(prod1);
+			d_prod2= dehomogenize(prod2);
+			d_prod3= dehomogenize(prod3);
+		        
             // 2. compute mid points (use helper function midPoint defined above)
 
+			midAB = midPoint(d_prod1,d_prod2);
+			midAC = midPoint(d_prod1,d_prod3);
+			midBC = midPoint(d_prod2,d_prod3);
+		
+			trianglePoints = [d_prod1,d_prod2,d_prod3];
+			trianglePoints1 = [midAB,midAC,midBC];
+	    
             // 3. draw triangles (leave last argument undefined for inner triangle)
-
-            // draw axis
+	    	drawTriangle(context, canvasWidth, canvasHeight, trianglePoints,"A,B,C");
+	   	 	drawTriangle(context, canvasWidth, canvasHeight, trianglePoints1,(1,1,1));
+	    
+	    	// draw axis
             arrow(context, 15, 285, 15, 255);
             arrow(context, 15, 285, 45, 285);
             context.fillStyle = 'rgb(0,0,0)';
@@ -180,11 +214,35 @@ var Basic2_3 = function () {
             // TODO
             // 1. project triangle, store homogeneous coordinates
 
+	    vertex1 = [triangle[0][0],triangle[0][1],triangle[0][2],1];
+	    vertex2 = [triangle[1][0],triangle[1][1],triangle[1][2],1];
+	    vertex3 = [triangle[2][0],triangle[2][1],triangle[2][2],1];
+	    
+	    var prod1 = matrixVectorProduct(M,vertex1);	    
+	    var prod2 = matrixVectorProduct(M,vertex2);
+	    var prod3 = matrixVectorProduct(M,vertex3);
+	    
             // 2. compute mid points of the homogeneous coordinates (make use of midPoint())
 
+	    midAB = midPoint(prod1,prod2);
+	    midAC = midPoint(prod1,prod3);
+	    midBC = midPoint(prod2,prod3);
+	    console.log(midBC);
+	    
             // 3. dehomogenize
+	    
+	    d_midAB = dehomogenize(midAB);
+	    d_midAC = dehomogenize(midAC);
+	    d_midBC = dehomogenize(midBC);
+	    console.log(d_midBC);
 
             // 4. draw triangles (leave last argument undefined for inner triangle)
+	    
+	    //trianglePoints = [d_prod1,d_prod2,d_prod3];
+	    trianglePoints2 = [d_midAB,d_midAC,d_midBC];
+	    
+	    //drawTriangle(context, canvasWidth, canvasHeight, trianglePoints,"A,B,C");
+	    drawTriangle(context, canvasWidth, canvasHeight, trianglePoints2,(1,1,1));
 
             // draw axis
             arrow(context, 15, 285, 15, 255);
@@ -195,3 +253,4 @@ var Basic2_3 = function () {
         }
     }
 }()
+	 
