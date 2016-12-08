@@ -323,15 +323,19 @@ var Basic1 = function () {
 			
             // TODO: determin level, based on the footprint of the pixel
             // 1. use pixelBottom_proj[2] and pixelTop_proj[2] to determin the footprint of the pixel on the texture	
-	      	var footprint = Math.sqrt(Math.pow(pixelTop_proj[2],2.0) + Math.pow(pixelBottom_proj[2],2.0)); 
+	      	var footprint = pixelTop_proj[2] - pixelBottom_proj[2]; 
             // 2. determin the mip map level where the texel size is larger than the pixel footprint
-       		if(1.0/ mipmap.texLevels.length < footprint)
+       		for (var j = 0; j < mipmap.nLevel; ++j)
        		{
-       		level = - 1;
+       		if(1/mipmap.texLevels[j].length > footprint)
+       		{
+       		level = j;
+       		break;
+       		}
        		}
             // read color from the mip map pyramid
             var color = mipmap.sampleNearestNeighbor(pixelCenter_proj[2], level);
-
+			
             // draw pixel
             context.beginPath();
             setStrokeStyle(context, color);
