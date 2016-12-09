@@ -44,12 +44,26 @@ DepthBuffer.prototype.TestAndSetFragment = function (x, valueF, depthTestMode) {
 	
     // TODO: implement the depth test based on the depth test mode (depthTestMode) and the depth value in fixed point representation
     // depthTestMode: 0 = no depth test, 1 = pass if less, -1 = pass if greater
-    if (true) { // adapt this condition
+    if (depthTestMode == -1 ) 
+    { // adapt this condition
+    	if(oldValue < newValue)
+    	{
         this.data[x] = newValue;
         return true;
+    	}
     }
-
+	else if (depthTestMode == 1)
+	{
+		if(oldValue > newValue)
+		{
+		this.data[x] = newValue;
+		return true;
+		}
+	}
+	else
+    {
     return false;
+	}
 }
 
 function RenderingPipeline(depthBuffer, renderTarget) {
@@ -171,14 +185,11 @@ RenderingPipeline.prototype.PrimitiveAssemblyStage = function (vertexStream, ibo
 	// you have to iterate over all indices in the ibo (every two ibo entries form a primitive e.g. ibo[0] and ibo[1] are the indices of the first primitive)
 	// the result can best be seen in the canonical volume
     var primitives = new Array();
-
-	
-	
-	
-	
-
+    for(var i = 0 ; i < ibo.length/2 ; i++)
+   	{
+    primitives[i] = [vertexStream[ibo[2*i]],vertexStream[ibo[2*i+1]]];
+   	}
     if(this.verbose) console.log("    - #primitives [out]: " + primitives.length);
-
     return primitives;
 }
 
@@ -203,7 +214,21 @@ RenderingPipeline.prototype.LineCulling = function (a, b) {
     // TODO: implement line culling depending on the culling mode (this.culling)
     // this.culling: 0 = false, 1 = backface culling, -1 = frontface culling
 	// the result can best be seen in the canonical volume
-    return false; // replace me: atm everything is not culled
+    vec3.scale(a,a,1/a[2]);
+    vec3.scale(b,b,1/b[2]);
+    var dir = a[0] - b[0];
+    if(this.culling == 0) return false;
+    else if (this.culling == 1)
+    { 
+    	if (dir < -0.001) return false;
+    	else return true; 
+    }
+    else if (this.culling == -1)
+    {
+    	if (dir > -0.001) return false;
+    	else return true;
+    }
+    // replace me: atm everything is not culled
 }
 
 RenderingPipeline.prototype.ClippingStage = function (primitives) {
