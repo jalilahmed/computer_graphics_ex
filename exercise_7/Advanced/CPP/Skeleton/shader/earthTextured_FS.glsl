@@ -71,7 +71,7 @@ void main()
 		
 		vec3  Ntangent = normalize(cross(dpx,dpy)); 
 		
-		float dotNL = dot(Ntangent,new_L); 
+		float dotNL = max(dot(Ntangent,new_L),0); 
 	  
 	 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	 //

@@ -1,0 +1,227 @@
+﻿
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="./resources/css/print.css">
+
+    <meta name="lecture" content="Computer Graphics">
+    <meta name="exerciseNr" content="8">
+    <meta name="exercisePrefix" content="Exercise">
+    <meta name="term" content="Winter Term 2016/17">
+    <meta name="dueDate" content="December 12, 2016, 11:59 pm">
+
+    <script type="text/javascript" async
+            src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
+    </script>
+
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+
+
+    <script type="text/javascript" src="./resources/js/sheet.js"></script>
+
+
+    <script type="text/javascript" src="./AdvancedScripts_Images/gl-Matrix.js"></script>
+    <script type="text/javascript" src="./AdvancedScripts_Images/helper.js"></script>
+
+
+
+</head>
+
+
+<body>
+
+
+
+
+    <page size="A4">
+        <content>
+            <exercise prefix="Advanced Exercise" title="Blending, Back Face Culling and Geometry Shader" points="10">
+
+                <figure>
+                    <center>
+
+
+                        <figcaption></figcaption>
+                    </center>
+                </figure>
+
+                <p>
+                    In this exercise we try to fake some volumetric shadows that are cast by the asteroids, enhance the appearance of the cloud layer of the earth and introduce a very simple geometry shader for inverting the orientation of triangles.
+                </p>
+
+                <h2>Blending </h2>
+
+                <p>
+                    Blending describes the combination of several layers of fragments.
+                    <br>
+                    The default approach for rendering so far displayed only the the closest layer.
+                </p>
+
+                <p>
+                    Rendering of opaque (non-transparent) and transparent geometry must be done in multiple passes.
+                    We have to separate the rendering of opaque and transparent objects.
+                    The rendering order is as follows:
+                </p>
+                <ol>
+                    <li>
+                        Enable depth write (That is a default setting, otherwise we see geometry that should be occluded. <b>Do not confuse this with depth testing!</b>).
+                    </li>
+                    <li>
+                        Render the opaque objects.
+                    </li>
+                    <li>
+                        Enable blending.
+                    </li>
+                    <li>
+                        Disable depth write (If we have many layers of transparent objects, we want to render all of them.
+                        With depth write enabled, the closest would prevent the ones farther away from being drawn.).
+                    </li>
+                    <li>
+                        Render the transparent objects.
+                    </li>
+                    <li>
+                        Disable blending.
+                    </li>
+                </ol>
+
+
+                <p>
+                    OpenGL provides a blending function <a href="https://www.opengl.org/sdk/docs/man/html/glBlendFunc.xhtml">glBlendFunc</a>.
+                    When blending, there is a <b>source</b> and a <b>destination</b>.
+                    The source is the fragment that is newly drawn (the closest transparent object).
+                    The destination	is the color already on screen (for example, the opaque elements).
+                </p>
+                <p>
+                    The blending function is complex and can be heavily configured.
+                    We want to achieve a <a>linear interpolation</a> between the old color and the new color using the $\alpha$ value of the new object as interpolant:
+                    \begin{equation}
+                    C  = \alpha_{new} C_{new} + (1-\alpha_{new}) C_{old}
+                    \end{equation}
+                    This happens internally, we cannot access $C_{old}$ in the fragment shader.
+                    <br>
+                    Instead we render $C_{old}$ first, then enable blending.
+                    We set the <code>sfactor</code> to <code>GL_SRC_ALPHA</code>; and <code>dfactor</code> to <code>GL_ONE_MINUS_SRC_ALPHA</code>.
+                    Then we render $C_{new}$.
+                </p>
+
+                <h2>Geometry Shader and Back Face Culling </h2>
+
+                <p>
+                    Triangles have two sides or faces.
+                    Generally, we are only interested in the "outside" of a triangle as the inside is hidden by the hull of the object.
+                    The GPU renders both indiscriminately <b>unless</b> we enable <a href="https://www.opengl.org/wiki/Face_Culling">back face culling</a>.
+                    The orientation of triangles is determined by the vertex placement and immutable.
+                </p>
+
+                <p>
+                    The cloud layer of the earth is a texture painted on a sphere.
+                    That means that an observer on the earth surface cannot see clouds.
+                    We could disable back face culling for the cloud geometry.
+                    Alternatively, we can flip the orientation of triangles that point away from us, as it is a nice problem for the introduction of the <a href="https://de.wikipedia.org/wiki/Geometry-Shader">geometry shader</a>:
+                    A geometry shader is part of the shader pipeline between the vertex shader and the dehomogenization (!!!) and before the primitive assembly.
+                    The input of this shader are the vertex position and <b>varyings</b> of the vertex stage.
+                    The output are the varyings that are expected in the fragment shader.
+                    We can create additional triangles or lines for every old triangle, or we can modify the old triangle and compute face normals, for example.
+                    We can also <b>swap the orientation</b> by inverting the vertex sequence.
+                </p>
+
+
+                <h2>Asteroid Shadows</h2>
+
+                <p>
+                    We want to draw shadows for the asteroids.
+                    There are many algorithms for shadow computation, we do not care about them and simply fake the shadows.
+
+                </p>
+                <p>
+
+                    Our approach is as follows: The asteroids cast a shadow on the dust that surrounds them.
+                    The shadows fade out, that means they get narrower with increasing distance from the sun.
+                    We implement the shadows by <a href="https://de.wikipedia.org/wiki/Extrusion">extruding</a> the asteroid faces to a vanishing point on the side turned away from the sun.
+                    This vanishing point can be computed using the <b>asteroid center</b>, the <b>light direction</b> and a fixed distance, say <b>11</b>.
+                </p>
+
+
+
+                <task title="Configuring the Blend Pipeline" points=3 submitfile="exercise8.cpp, clouds_FS.glsl, asteroidShadow_FS.glsl">
+
+
+                    <ul>
+                        <li>
+                            Implement alpha blending by configuring the pipeline.
+                        </li>
+
+                        <li>
+                            Set an opacity value for the cloud shadows.
+                        </li>
+                        <li>
+                            Set an opacity value for the asteroid shadows.
+                        </li>
+
+
+                    </ul>
+
+
+                </task>
+
+                <task title="Flipping Triangles" points=3 submitfile="clouds_GS.glsl, Advanced_2.txt">
+
+
+                    <ul>
+                        <li>
+                            Flip the triangles that face away from the observer.
+                        </li>
+                        <li>
+                            In which space, at which point in the transformation do we have to compute the flip decision?
+                            In <code>Advanced_2.txt</code>, describe what happens if you flip with wrong data, and why.
+                        </li>
+                    </ul>
+
+
+                </task>
+
+
+                <task title="Asteroid Shadows" points=4 submitfile="asteroidShadowInstanced_VS.glsl, asteroidShadow_FS.glsl">
+
+
+
+                    <ul>
+                        <li>
+                            Compute the geometry for the asteroid shadows.
+                        </li>
+                        <li>
+                            Attenuate the opacity exponentially, thereby simulating the transition from darker to lighter shadow.
+                        </li>
+                        <!--<li>
+                         The decision for extrusion is based on the vertex normal.
+                         That is an approximation which erroneously allows the extrusion of triangles that are facing the light source!
+                          In <b>Advanced_3.txt</b>, describe a scenario where this happens
+                          (Tip: Draw a 2D cut of a light source and a box with different vertex normals.).
+                        </li>-->
+                    </ul>
+
+
+                </task>
+
+
+                <task title="Bonus: Earth Atmosphere" points=1 submitfile="Bonus.zip">
+
+                    <p>
+                        Try to simulate a bluish earth atmosphere that fades with distance.
+                    </p>
+
+
+
+
+                </task>
+
+
+            </exercise>
+        </content>
+    </page>-->
+
+</body>
